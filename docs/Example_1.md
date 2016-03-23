@@ -19,7 +19,7 @@ end
 server = Server((req, res) -> app(req))
 run(server, 8000)
 ```
-Run `julia members_only.jl`, then open your browser and navigate to `http://0.0.0.0:8000/treasure`. You should see _This page displays information for members only._ printed on the screen.
+Run `julia members_only.jl`, then open your browser and navigate to `http://0.0.0.0:8000/members_only`. You should see _This page displays information for members only._ printed on the screen.
 
 As it stands, the app allows anyone to see the information that is intended for members only. Lets require users to login to access the restricted information. We might alter the app as follows:
 - Run the app under HTTPS, not just HTTP (otherwise the username and password can be intercepted and read by an attacker).
