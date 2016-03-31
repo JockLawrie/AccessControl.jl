@@ -4,7 +4,7 @@ function app(req::Request)
     res = Response()
     if req.resource == "/home"
         res.data = "This is the home page. Anyone can visit here."
-    if req.resource == "/members_only"
+    elseif req.resource == "/members_only"
         res.data = "This page displays information for members only."
     else
         res.status = 404
