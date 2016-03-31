@@ -1,7 +1,9 @@
 #Authentication 
 
+To run the following examples: `cd examples/authentication/`.
+
 ### Example 1
-Consider the following app defined in examples/members_only1.jl.
+Consider the following app defined in members_only1.jl.
 ```julia
 using HttpServer
 
@@ -27,42 +29,55 @@ Run `julia members_only1.jl`, then open your browser and navigate to `http://0.0
 ### Example 2
 As it stands, the app allows anyone to see the information that is intended for members only. Lets require users to login to access the restricted information. We might alter the app as follows:
 - Run the app under HTTPS, not just HTTP (otherwise the username and password can be intercepted and read by an attacker).
-- Add a login page, functionality for processing the username and password, and a handler for logout.
-- If a user who is not logged in tries to access the resource, return the login page.
-- If the user has logged in and requests the resource, return the resource.
+- Add a login form to the home page.
+- If login is successful, redirect the user to the members only page; else return _400: Bad Request_.
+- If a user who is not logged in tries to access the resource, return _404: Not Found_ (this is a security measure: an attacker doesn't know whether the resource exists and is forbidden, or the resource doesn't exist).
+- If the user has logged in and requests the members only page, return the requested resource.
 - If the user has logged in and requests a non-existent resource, return _404: Not Found_.
+- On logout, redirect the user to the home page.
 
-The resulting app may look like this: (see examples/members_only2.jl)
+The resulting app may look like this: (members_only2.jl)
 ```julia
 using HttpServer
 using SecureSessions
 
+include("generate_cert_and_key.jl")
 include("handlers_members_only2.jl")
+
+
+# Generate cert and key for https if they do not already exist
+generate_cert_and_key(@__FILE__)
+
+# Database of stored passwords (which are hashed)
+password_store          = Dict{AbstractString, StoredPassword}()    # username => StoredPassword
+password_store["Alice"] = StoredPassword("pwd_alice")
+password_store["Bob"]   = StoredPassword("pwd_bob")
 
 function app(req::Request)
     res = Response()
     if req.resource == "/home"                     # Home page requires no login
-        res.data = display_home_page()
+        res.data = "This is the home page. Anyone can visit here."
     elseif req.resource == "/login"                # Display login page
         res.data = display_login_page()
     elseif req.resource == "/log_me_in"            # Process username and password
         credentials_are_valid = validate_login_credentials(req)
         if credentials_are_valid
-            res.data = true
+	    res.data = "This page displays information for members only."
             create_secure_session_cookie(res, "sessionid", username)
         else
-            res.data = false
+            res.data   = "Bad request"
+            res.status = 400
         end
     else
         username = get_session_cookie_data(req, "sessionid")
-        if username == ""                                           # User not logged in: Display login page
+        if username == ""                                           # User not logged in: Return 404
             res.status = 404
             res.data   = "Requested resource not found."
         else                                                        # User is logged in: Return requested resource
             if req.resource == "/members_only"
                 res.data = "This page displays information for members only."
             elseif req.resource == "/logout"
-                res.data = display_home_page()
+		res.data = "This is the home page. Anyone can visit here."
                 set_cookie!(res, "sessionid", utf8(""), Dict("Max-Age" => utf8("0")))
             else
                 res.status = 404
@@ -74,17 +89,25 @@ function app(req::Request)
 end
 
 server = Server((req, res) -> app(req))
-run(server, 8000)
+cert   = MbedTLS.crt_parse_file(rel("keys/server.crt"))
+key    = MbedTLS.parse_keyfile(rel("keys/server.key"))
+run(server, 8000, ssl = (cert, key))
 ```
 
 
 ### Example 3
-Despite being a simple app, there's a lot of visual clutter in Example 2. Let's clean this up as follows (see examples/members_only3.jl).
+Despite being a simple app, there's a lot of visual clutter in Example 2. Let's clean this up as follows (members_only3.jl). Note the categorization of resources as either restricted or unrestricted.
 ```julia
 using HttpServer
 using SecureSessions
 
 include("handlers_members_only3.jl")
+
+
+# Database of stored passwords (which are hashed)
+password_store = Dict{AbstractString, StoredPassword}()
+password_store = StoredPassword("pwd_alice")
+password_store = StoredPassword("pwd_bob")
 
 # Resources that do not require authentication
 unrestricted_paths               = Dict{ASCIIString, Function}()
@@ -96,7 +119,6 @@ unrestricted_paths["/log_me_in"] = log_me_in
 restricted_paths                 = Dict{ASCIIString, Function}()
 resticted_paths["/members_only"] = members_only
 resticted_paths["/logout"]       = logout
-
 
 function app(req::Request)
     res  = Response()
@@ -122,20 +144,26 @@ run(server, 8000)
 
 
 ### Example 4
-We can clean this up further using macros. This approach also enables us to add an authentication requirement to a resource by adding one line to the corrresponding handler. We will use the same approach for specifying authorization requirements too. Thus all restrictions associated with a resource a specified in one place, namely the handler itself. Our example (examples/members_only4.jl) then becomes:
+We can clean this up further using macros. This approach also enables us to add an authentication requirement to a resource by adding one line to the corrresponding handler. We will use the same approach for specifying authorization requirements too. Thus all restrictions associated with a resource a specified in one place, namely the handler itself. Our example (members_only4.jl) then becomes:
 ```julia
 using HttpServer
 using SecureSessions
 
 include("handlers_members_only4.jl")    # Authentication checks are done in each handler by adding 1 line of code
 
-paths                  = Dict{ASCIIString, Function}()
+
+# Database of stored passwords (which are hashed)
+password_store = Dict{AbstractString, StoredPassword}()
+password_store = StoredPassword("pwd_alice")
+password_store = StoredPassword("pwd_bob")
+
+# Resources
+paths                  = Dict{ASCIIString, Function}()    # resource => handler
 paths["/home"]         = home
 paths["/members_only"] = members_only
 paths["/login"]        = login
 paths["/log_me_in"]    = log_me_in
 paths["/logout"]       = logout
-
 
 function app(req::Request)
     res  = Response()
@@ -174,7 +202,6 @@ macro check_authentication(req, res)
         end
     end
 end
-
 
 function myhandler(req, res)
     @check_authentication(req, res)
