@@ -20,11 +20,14 @@ function app(req::Request)
         res.data = home_with_login_form()
     elseif req.resource == "/login"                                 # Process username and password
 	if req.method == "POST"
-	    up = JSON.parse(bytestring(req.data))                   # Dict("username" => username, "password" => password)
-	    if login_credentials_are_valid(up["username"], up["password"])    # Redirect to members_only page
+           qry = bytestring(req.data)        # query = "username=xxx&password=yyy"
+           dct = parsequerystring(qry)       # Dict("username" => xxx, "password" => yyy)
+	   username = dct["username"]
+	   password = dct["password"]
+	    if login_credentials_are_valid(username, password)    # Redirect to members_only page
 		res.status = 303
 		res.headers["Location"] = "/members_only"
-		create_secure_session_cookie(up["username"], res, "sessionid")
+		create_secure_session_cookie(username, res, "sessionid")
 	    else
 		res.data   = "Bad request"
 		res.status = 400

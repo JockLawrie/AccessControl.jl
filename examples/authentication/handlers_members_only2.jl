@@ -21,10 +21,10 @@ function home_with_login_form()
      <br>
      <form action='login' method='post'>
          Username:<br>
-	 <input type='text' id='username'/>
+	 <input type='text' id='username' name='username'/>
 	 <br>
 	 Password:<br>
-	 <input type='password' id='password'/>
+	 <input type='password' id='password' name='password'/>
 	 <br>
 	 <input type='submit' value='Login'/>
      </form>"
