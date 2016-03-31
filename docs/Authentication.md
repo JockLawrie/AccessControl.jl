@@ -143,7 +143,7 @@ function app(req::Request)
     if haskey(paths, rsrc)
         paths[rsrc](req, res)
     else
-	notfound!(res)
+        notfound!(res)
     end
     res
 end
@@ -156,6 +156,7 @@ __Note:__ Whether the approach of Example 4 is preferable to that of Example 3 d
 
 
 ## Todo
+```julia
 function is_authenticated(req)
     result   = false
     username = get_session_cookie_data(req, "sessionid")
@@ -179,5 +180,4 @@ function myhandler(req, res)
     @check_authentication(req, res)
     # regular handling code
 end
-
-
+```
