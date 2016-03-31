@@ -27,12 +27,13 @@ Run `julia members_only1.jl`, then open your browser and navigate to `http://0.0
 
 
 ### Example 2
-As it stands, the app allows anyone to see the information that is intended for members only. Lets require users to login to access the restricted information. We might alter the app as follows:
+As it stands, the app allows anyone to see the information that is intended for members only. Lets require users to login to access the restricted information. We will alter the app as follows:
 - Run the app under HTTPS, not just HTTP (otherwise the username and password can be intercepted and read by an attacker).
 - Add a login form to the home page.
-- If login is successful, redirect the user to the members only page; else return _400: Bad Request_.
-- If a user who is not logged in tries to access the resource, return _404: Not Found_ (this is a security measure: an attacker doesn't know whether the resource exists and is forbidden, or the resource doesn't exist).
-- If the user has logged in and requests the members only page, return the requested resource.
+- If login is successful, redirect the user to the members-only page; else return _400: Bad Request_.
+- Add a logout button to the members-only page.
+- If a user who is not logged in tries to access the members-only page, return _404: Not Found_ (this is a security measure: an attacker doesn't know whether the resource exists and is forbidden, or the resource doesn't exist).
+- If the user has logged in and requests the members-only page, return the requested resource.
 - If the user has logged in and requests a non-existent resource, return _404: Not Found_.
 - On logout, redirect the user to the home page.
 
@@ -40,6 +41,7 @@ The resulting app may look like this: (members_only2.jl)
 ```julia
 using HttpServer
 using SecureSessions
+using JSON
 
 include("generate_cert_and_key.jl")
 include("handlers_members_only2.jl")
@@ -55,30 +57,38 @@ password_store["Bob"]   = StoredPassword("pwd_bob")
 
 function app(req::Request)
     res = Response()
-    if req.resource == "/home"                     # Home page requires no login
-        res.data = "This is the home page. Anyone can visit here."
-    elseif req.resource == "/login"                # Display login page
-        res.data = display_login_page()
-    elseif req.resource == "/log_me_in"            # Process username and password
-        credentials_are_valid = validate_login_credentials(req)
-        if credentials_are_valid
-	    res.data = "This page displays information for members only."
-            create_secure_session_cookie(res, "sessionid", username)
-        else
-            res.data   = "Bad request"
-            res.status = 400
-        end
-    else
+    if req.resource == "/home"                                      # Home page with login form
+        res.data = home_with_login_form()
+    elseif req.resource == "/login"                                 # Process login request
+	if req.method == "POST"
+           qry      = bytestring(req.data)        # query = "username=xxx&password=yyy"
+           dct      = parsequerystring(qry)       # Dict("username" => xxx, "password" => yyy)
+	   username = dct["username"]
+	   password = dct["password"]
+	    if login_credentials_are_valid(username, password)      # Successful login: Redirect to members_only page
+		res.status = 303
+		res.headers["Location"] = "/members_only"
+		create_secure_session_cookie(username, res, "sessionid")
+	    else                                                    # Unsuccessful login: Return 400: Bad Request
+		res.data   = "Bad request"
+		res.status = 400
+	    end
+	else                                                        # Require that login requests are POST requests
+	    res.data   = "Bad request"
+	    res.status = 400
+	end
+    else  # User is requesting resource that either requires login or doesn't exist
         username = get_session_cookie_data(req, "sessionid")
-        if username == ""                                           # User not logged in: Return 404
+        if username == ""                                           # User not logged in: Return 404: Not Found
             res.status = 404
             res.data   = "Requested resource not found."
         else                                                        # User is logged in: Return requested resource
             if req.resource == "/members_only"
-                res.data = "This page displays information for members only."
-            elseif req.resource == "/logout"
-		res.data = "This is the home page. Anyone can visit here."
-                set_cookie!(res, "sessionid", utf8(""), Dict("Max-Age" => utf8("0")))
+                res.data = members_only()
+            elseif req.resource == "/logout"                        # User has logged out: Redirect to home page
+		res.status = 303
+		res.headers["Location"] = "/home"
+                setcookie!(res, "sessionid", utf8(""), Dict("Max-Age" => utf8("0")))
             else
                 res.status = 404
                 res.data   = "Requested resource not found."
@@ -89,11 +99,10 @@ function app(req::Request)
 end
 
 server = Server((req, res) -> app(req))
-cert   = MbedTLS.crt_parse_file(rel("keys/server.crt"))
-key    = MbedTLS.parse_keyfile(rel("keys/server.key"))
-run(server, 8000, ssl = (cert, key))
+cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
+key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
+run(server, port = 8000, ssl = (cert, key))
 ```
-
 
 ### Example 3
 Despite being a simple app, there's a lot of visual clutter in Example 2. Let's clean this up as follows (members_only3.jl). Note the categorization of resources as either restricted or unrestricted.

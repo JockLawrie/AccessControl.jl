@@ -29,3 +29,14 @@ function home_with_login_form()
 	 <input type='submit' value='Login'/>
      </form>"
 end
+
+
+"Members only message with a logout link."
+function members_only()
+    "<p>This page displays information for members only.</p>
+     <br>
+     <form action='logout' method='post'>
+	 <input type='submit' value='Logout'/>
+     </form>
+    "
+end
