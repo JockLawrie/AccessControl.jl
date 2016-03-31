@@ -11,6 +11,12 @@ function login_credentials_are_valid(username::AbstractString, password::Abstrac
 	    result = true
 	end
     end
+#=
+salt, hashed_pwd = get_salt_hashedpwd(username)     # Depends on (globally available) datastore...user to implement.
+if password_is_valid(password, salt, hashed_pwd)    # Implement this function in SecureSessions.jl
+    result = true
+end
+=#
     result
 end
 
