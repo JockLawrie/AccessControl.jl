@@ -6,9 +6,9 @@
 - AccessControl can be included within an existing app, or it can exist as a stand-alone web app that an existing app can use as a service.
 - It provides:
     - Authentication
-    - Authorization (optional)
-    - Admin (read/write) functionality (optional)
-- See the docs for details.
+    - Authorization (role-based access control)
+    - Admin functionality for editing access control rules.
+- See the [docs](docs/Contents.md) for details.
 
 ## Usage
 This repo currently contains documentation only. Code will follow.
