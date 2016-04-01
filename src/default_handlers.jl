@@ -61,7 +61,7 @@ end
    If not, return notfound!(res), else continue to the existing handler code.
    This pattern is useful for checking if a user is authorized to access a resource and determining behaviour if the check fails.
 =#
-
+#=
 macro notfound!(res)
     return quote
 	notfound!($res)
@@ -84,6 +84,6 @@ macro redirect!(res, destpath)
 	return $res
     end
 end
-
+=#
 
 # EOF
