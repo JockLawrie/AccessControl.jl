@@ -1,17 +1,19 @@
 module AccessControl
 
 # Globals
-passwd = ""
-seclvl = "0_no_admin"
+admin_password = ""
 
 # Export
-export access_control
+export login!, logout!, notfound!, badrequest!, redirect!,    # Default handlers
+       is_logged_in, is_not_logged_in                         # utils
 
 # Deps
 using SecureSessions
 using URIParser
 
 # Includes
-include("main_access_control.jl")
+include("default_handlers.jl")
+include("utils.jl")
+
 
 end # module

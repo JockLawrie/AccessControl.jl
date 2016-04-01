@@ -37,11 +37,10 @@ As it stands, the app allows anyone to see the information that is intended for 
 - If the user has logged in and requests a non-existent resource, return _404: Not Found_.
 - On logout, redirect the user to the home page.
 
-The resulting app may look like this: (members_only2.jl)
+The resulting app may look like this (members_only2.jl):
 ```julia
 using HttpServer
 using SecureSessions
-using JSON
 
 include("generate_cert_and_key.jl")
 include("handlers_members_only2.jl")
@@ -105,42 +104,34 @@ run(server, port = 8000, ssl = (cert, key))
 ```
 
 ### Example 3
-Despite being a simple app, there's a lot of visual clutter in Example 2. Let's clean this up as follows (members_only3.jl). Note the categorization of resources as either restricted or unrestricted.
+Despite being a simple app, there's a lot of visual clutter in Example 2. Let's clean this up. Note:
+- The separation of app-specific handlers from generic handlers. The latter are included in AccessControl, as well as some utilities.
+- Data that determines access control, such as username-password combinations, is stored in a user-defined data store. Code that defines the data store and functions for accessing data is separated into its own file,  `acdata_members_only3.jl`.
 ```julia
 using HttpServer
 using SecureSessions
+using AccessControl
 
+include("acdata_members_only3.jl")        # User-defined, app-specific access control data (acdata) and access functions
 include("handlers_members_only3.jl")
 
-
-# Database of stored passwords (which are hashed)
-password_store = Dict{AbstractString, StoredPassword}()
-password_store = StoredPassword("pwd_alice")
-password_store = StoredPassword("pwd_bob")
-
-# Resources that do not require authentication
-unrestricted_paths               = Dict{ASCIIString, Function}()
-unrestricted_paths["/home"]      = home
-unrestricted_paths["/login"]     = login
-unrestricted_paths["/log_me_in"] = log_me_in
-
-# Resources that require authentication
-restricted_paths                 = Dict{ASCIIString, Function}()
-resticted_paths["/members_only"] = members_only
-resticted_paths["/logout"]       = logout
+# Generate cert and key for https if they do not already exist
+include("generate_cert_and_key.jl")
+generate_cert_and_key(@__FILE__)
 
 function app(req::Request)
     res  = Response()
     rsrc = req.resource
-    if haskey(unrestricted_paths, rsrc)
-        unrestricted_paths[rsrc](req, res)
-    elseif haskey(restricted_paths, rsrc)
-        username = get_session_cookie_data(req, "sessionid")
-        if username == ""
-	    notfound!(res)
-        else
-            restricted_paths[rsrc](req, res)
-        end
+    if rsrc == "/home"
+	home_with_login_form!(res)
+    elseif rsrc == "/members_only"
+	username = get_session_cookie_data(req, "sessionid")
+	is_logged_in(username) ? members_only!(res) : notfound!(res)
+    elseif rsrc == "/login"
+	login!(req, res, acdata, "/members_only")
+    elseif rsrc == "/logout"
+	username = get_session_cookie_data(req, "sessionid")
+	is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
     else
 	notfound!(res)
     end
@@ -148,7 +139,9 @@ function app(req::Request)
 end
 
 server = Server((req, res) -> app(req))
-run(server, 8000)
+cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
+key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
+run(server, port = 8000, ssl = (cert, key))
 ```
 
 
@@ -194,26 +187,21 @@ __Note:__ Whether the approach of Example 4 is preferable to that of Example 3 d
 
 ## Todo
 ```julia
-function is_authenticated(req)
-    result   = false
-    username = get_session_cookie_data(req, "sessionid")
-    if username != ""
-	result = true
-    end
-    result
+function is_authenticated(username)
+    username == "" ? false : true
 end
 
-macro check_authentication(req, res)
+macro check_authentication(res, username)
     return quote
-        if !is_authenticated($req)
+        if !is_authenticated($username)
             notfound!($res)
-            return nothing    # Early return
+            return res        # Early return
         end
     end
 end
 
 function myhandler(req, res)
-    @check_authentication(req, res)
+    @check_authentication(res, username)
     # regular handling code
 end
 ```

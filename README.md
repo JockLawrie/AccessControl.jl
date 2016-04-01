@@ -7,8 +7,9 @@
 - It provides:
     - Authentication
     - Authorization (role-based access control)
-    - Admin functionality for editing access control rules.
-- See the [docs](docs/Contents.md) for details.
+    - Session Management
+    - Admin functionality for editing data that determines access control.
+- See the [docs](docs/Contents.md) for details and examples.
 
 ## Usage
 This repo currently contains documentation only. Code will follow.

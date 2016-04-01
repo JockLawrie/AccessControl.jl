@@ -1,6 +1,5 @@
 using HttpServer
 using SecureSessions
-using JSON
 
 include("generate_cert_and_key.jl")
 include("handlers_members_only2.jl")

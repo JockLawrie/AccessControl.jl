@@ -1,8 +1,8 @@
 # Contents
 
 1. [Authentication](Authentication.md)
-2. Admin Access (read/write)
-3. Authorization
+2. Authorization
+3. Admin Access (read/write)
 4. Managing Session State
   1. Client-side management
   2. Server-side management
