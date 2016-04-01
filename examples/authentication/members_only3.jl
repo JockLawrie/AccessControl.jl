@@ -2,7 +2,7 @@ using HttpServer
 using SecureSessions
 using AccessControl
 
-include("acdata_members_only3.jl")        # User-defined, app-specific access control data (acdata) and access functions
+include("acdata_members_only.jl")        # User-defined, app-specific access control data (acdata) and access functions
 include("handlers_members_only3.jl")
 
 # Generate cert and key for https if they do not already exist

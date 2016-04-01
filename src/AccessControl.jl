@@ -14,5 +14,6 @@ include("utils.jl")
 # Globals
 admin_password = ""
 
+function get_salt_hashedpwd end    # To be defined by the user
 
 end # module
