@@ -23,7 +23,7 @@ end
 "Members only message with a logout link."
 function members_only!(req, res)
     username = get_session_cookie_data(req, "sessionid")
-    is_not_logged_in(username) ? notfound!(res): 
+    is_not_logged_in(username) && (notfound!(res); return)
     res.data = "<p>This page displays information for members only.</p>
                 <br>
                 <form action='logout' method='post'>
