@@ -8,6 +8,7 @@ export login!, logout!, notfound!, badrequest!, redirect!,    # Default handlers
        is_logged_in, is_not_logged_in                         # utils
 
 # Deps
+using HttpCommon
 using SecureSessions
 using URIParser
 
