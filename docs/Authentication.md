@@ -187,4 +187,4 @@ run(server, port = 8000, ssl = (cert, key))
 ```
 
 
-__Note:__ This approach may seem only a little better than Example 3, but it has substantial gains when there are many paths because no extra clauses are reuired in the if statement. Alternatively, if your resources all require the same authentication check (except _home_, _login_ and _logout_), then you can bring the check out of the individual handlers and into the main body of then app. The best aproach will depend on the requirements of your app.
+__Note:__ This approach may seem only a little better than Example 3, but it has substantial gains when there are many paths because no extra clauses are required in the `if` statement. Alternatively, if your resources all require the same authentication check (except _home_, _login_ and _logout_), then you can bring the check out of the individual handlers and into the main body of then app. The best aproach will depend on the requirements of your app.
