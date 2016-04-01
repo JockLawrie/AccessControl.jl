@@ -26,7 +26,7 @@ end
 "User has clicked the logout button/link: Redirect to redirect_path."
 function logout!(res, redirect_path::AbstractString)
     redirect!(res, redirect_path)
-    setcookie!(res, "sessionid", utf8(""), Dict("Max-Age" => utf8("0")))
+    invalidate_cookie!(res, "sessionid")
 end
 
 
@@ -46,6 +46,43 @@ end
 function redirect!(res, destination_path::AbstractString)
     res.status = 303
     res.headers["Location"] = destination_path
+end
+
+
+################################################################################
+#= Macro version of handlers.
+
+   These are useful for inserting into existing handlers to enable early returns if a check fails. For example:
+       function myhandler(req, res)
+	   is_not_logged_in(username) && @notfound!(res)
+	   # existing handler code here
+       end
+   This handler checks whether the user is logged in.
+   If not, return notfound!(res), else continue to the existing handler code.
+   This pattern is useful for checking if a user is authorized to access a resource and determining behaviour if the check fails.
+=#
+
+macro notfound!(res)
+    return quote
+	notfound!($res)
+	return $res
+    end
+end
+
+
+macro badrequest!(res)
+    return quote
+	badrequest!($res)
+	return $res
+    end
+end
+
+
+macro redirect!(res, destpath)
+    return quote
+	redirect!($res, $destpath)
+	return $res
+    end
 end
 
 

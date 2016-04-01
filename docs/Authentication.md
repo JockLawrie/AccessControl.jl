@@ -146,62 +146,45 @@ run(server, port = 8000, ssl = (cert, key))
 
 
 ### Example 4
-We can clean this up further using macros. This approach also enables us to add an authentication requirement to a resource by adding one line to the corrresponding handler. We will use the same approach for specifying authorization requirements too. Thus all restrictions associated with a resource a specified in one place, namely the handler itself. Our example (members_only4.jl) then becomes:
+We can clean this up further using macros. This approach also enables us to add an authentication requirement to a resource by adding a line or two to the corrresponding handler. We will use the same approach for specifying authorization requirements too. Thus all restrictions associated with a resource a specified in one place, namely the handler itself. Our example (members_only4.jl) then becomes:
 ```julia
 using HttpServer
 using SecureSessions
+using AccessControl
 
-include("handlers_members_only4.jl")    # Authentication checks are done in each handler by adding 1 line of code
+include("acdata_members_only4.jl")        # User-defined, app-specific access control data (acdata) and access functions
+include("handlers_members_only4.jl")
 
+# Generate cert and key for https if they do not already exist
+include("generate_cert_and_key.jl")
+generate_cert_and_key(@__FILE__)
 
-# Database of stored passwords (which are hashed)
-password_store = Dict{AbstractString, StoredPassword}()
-password_store = StoredPassword("pwd_alice")
-password_store = StoredPassword("pwd_bob")
-
-# Resources
+# Globals
 paths                  = Dict{ASCIIString, Function}()    # resource => handler
-paths["/home"]         = home
+paths["/home"]         = home_with_login_form
 paths["/members_only"] = members_only
-paths["/login"]        = login
-paths["/log_me_in"]    = log_me_in
-paths["/logout"]       = logout
 
 function app(req::Request)
     res  = Response()
     rsrc = req.resource
     if haskey(paths, rsrc)
-        paths[rsrc](req, res)
+	paths[rsrc](req, res)
+    elseif rsrc == "/login"
+	login!(req, res, acdata, "/members_only")
+    elseif rsrc == "/logout"
+	username = get_session_cookie_data(req, "sessionid")
+	is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
     else
-        notfound!(res)
+	notfound!(res)
     end
     res
 end
 
 server = Server((req, res) -> app(req))
-run(server, 8000)
+cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
+key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
+run(server, port = 8000, ssl = (cert, key))
 ```
 
-__Note:__ Whether the approach of Example 4 is preferable to that of Example 3 depends on your app. If your app has hundreds of resources that all require the same authentication check, then the approach of Example 3 is probably best. That is, add the check once, prior to entering the handler. If access to different resources requires different checks, then the approach of Example 4 may be preferable.
 
-
-## Todo
-```julia
-function is_authenticated(username)
-    username == "" ? false : true
-end
-
-macro check_authentication(res, username)
-    return quote
-        if !is_authenticated($username)
-            notfound!($res)
-            return res        # Early return
-        end
-    end
-end
-
-function myhandler(req, res)
-    @check_authentication(res, username)
-    # regular handling code
-end
-```
+__Note:__ This approach may seem only a little better than Example 3, but it has substantial gains when there are many paths because no extra clauses are reuired in the if statement. Alternatively, if your resources all require the same authentication check (except _home_, _login_ and _logout_), then you can bring the check out of the individual handlers and into the main body of then app. The best aproach will depend on the requirements of your app.

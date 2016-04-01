@@ -1,20 +1,18 @@
 module AccessControl
 
-# Globals
-admin_password = ""
-
-# Export
-export login!, logout!, notfound!, badrequest!, redirect!,    # Default handlers
-       is_logged_in, is_not_logged_in                         # utils
-
-# Deps
 using HttpCommon
 using SecureSessions
-using URIParser
 
-# Includes
+export login!, logout!, notfound!, badrequest!, redirect!,    # Default handlers
+       @notfound!,                                            # Macro versions of some default handlers
+       is_logged_in, is_not_logged_in                         # utils
+
+
 include("default_handlers.jl")
 include("utils.jl")
+
+# Globals
+admin_password = ""
 
 
 end # module
