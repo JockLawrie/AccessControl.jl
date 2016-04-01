@@ -18,22 +18,22 @@ function app(req::Request)
     if req.resource == "/home"                                      # Home page with login form
         res.data = home_with_login_form()
     elseif req.resource == "/login"                                 # Process login request
-	if req.method == "POST"
-           qry      = bytestring(req.data)        # query = "username=xxx&password=yyy"
-           dct      = parsequerystring(qry)       # Dict("username" => xxx, "password" => yyy)
-	   username = dct["username"]
-	   password = dct["password"]
+        if req.method == "POST"
+            qry      = bytestring(req.data)        # query = "username=xxx&password=yyy"
+            dct      = parsequerystring(qry)       # Dict("username" => xxx, "password" => yyy)
+            username = dct["username"]
+            password = dct["password"]
 	    if login_credentials_are_valid(username, password)      # Successful login: Redirect to members_only page
-		res.status = 303
-		res.headers["Location"] = "/members_only"
-		create_secure_session_cookie(username, res, "sessionid")
+                res.status = 303
+                res.headers["Location"] = "/members_only"
+                create_secure_session_cookie(username, res, "sessionid")
 	    else                                                    # Unsuccessful login: Return 400: Bad Request
-		res.data   = "Bad request"
-		res.status = 400
+                res.data   = "Bad request"
+                res.status = 400
 	    end
 	else                                                        # Require that login requests are POST requests
-	    res.data   = "Bad request"
-	    res.status = 400
+            res.data   = "Bad request"
+            res.status = 400
 	end
     else  # User is requesting resource that either requires login or doesn't exist
         username = get_session_cookie_data(req, "sessionid")
@@ -44,9 +44,9 @@ function app(req::Request)
             if req.resource == "/members_only"
                 res.data = members_only()
             elseif req.resource == "/logout"                        # User has logged out: Redirect to home page
-		res.status = 303
-		res.headers["Location"] = "/home"
-                setcookie!(res, "sessionid", utf8(""), Dict("Max-Age" => utf8("0")))
+                res.status = 303
+                res.headers["Location"] = "/home"
+                invalidate_cookie!(res, "sessionid")
             else
                 res.status = 404
                 res.data   = "Requested resource not found."
