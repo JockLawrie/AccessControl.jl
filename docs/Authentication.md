@@ -123,17 +123,17 @@ function app(req::Request)
     res  = Response()
     rsrc = req.resource
     if rsrc == "/home"
-	home_with_login_form!(res)
+        home_with_login_form!(res)
     elseif rsrc == "/members_only"
-	username = get_session_cookie_data(req, "sessionid")
-	is_logged_in(username) ? members_only!(res) : notfound!(res)
+        username = get_session_cookie_data(req, "sessionid")
+        is_logged_in(username) ? members_only!(res) : notfound!(res)
     elseif rsrc == "/login"
-	login!(req, res, acdata, "/members_only")
+        login!(req, res, acdata, "/members_only")
     elseif rsrc == "/logout"
-	username = get_session_cookie_data(req, "sessionid")
-	is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
+        username = get_session_cookie_data(req, "sessionid")
+        is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
     else
-	notfound!(res)
+        notfound!(res)
     end
     res
 end
@@ -168,14 +168,14 @@ function app(req::Request)
     res  = Response()
     rsrc = req.resource
     if haskey(paths, rsrc)
-	paths[rsrc](req, res)
+        paths[rsrc](req, res)
     elseif rsrc == "/login"
-	login!(req, res, acdata, "/members_only")
+        login!(req, res, acdata, "/members_only")
     elseif rsrc == "/logout"
-	username = get_session_cookie_data(req, "sessionid")
-	is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
+        username = get_session_cookie_data(req, "sessionid")
+        is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
     else
-	notfound!(res)
+        notfound!(res)
     end
     res
 end
