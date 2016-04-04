@@ -64,18 +64,18 @@ function app(req::Request)
             dct      = parsequerystring(qry)       # Dict("username" => xxx, "password" => yyy)
             username = dct["username"]
             password = dct["password"]
-	    if login_credentials_are_valid(username, password)      # Successful login: Redirect to members_only page
+            if login_credentials_are_valid(username, password)      # Successful login: Redirect to members_only page
                 res.status = 303
                 res.headers["Location"] = "/members_only"
                 create_secure_session_cookie(username, res, "sessionid")
-	    else                                                    # Unsuccessful login: Return 400: Bad Request
+            else                                                    # Unsuccessful login: Return 400: Bad Request
                 res.data   = "Bad request"
                 res.status = 400
-	    end
-	else                                                        # Require that login requests are POST requests
+            end
+        else                                                        # Require that login requests are POST requests
             res.data   = "Bad request"
             res.status = 400
-	end
+        end
     else  # User is requesting resource that either requires login or doesn't exist
         username = get_session_cookie_data(req, "sessionid")
         if username == ""                                           # User not logged in: Return 404: Not Found
