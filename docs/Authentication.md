@@ -146,7 +146,8 @@ run(server, port = 8000, ssl = (cert, key))
 
 
 ### Example 4
-We can clean this up further using macros. This approach also enables us to add an authentication requirement to a resource by adding a line or two to the corrresponding handler. We will use the same approach for specifying authorization requirements too. Thus all restrictions associated with a resource a specified in one place, namely the handler itself. Our example (members_only4.jl) then becomes:
+We can clean this up further by moving the authentication check for a resource inside the corresponding handler. We will use the same approach for specifying authorization requirements too. Thus all restrictions associated with a resource a specified in one place, namely the handler itself. Our example (members_only4.jl) then becomes:
+
 ```julia
 using HttpServer
 using SecureSessions
@@ -172,8 +173,7 @@ function app(req::Request)
     elseif rsrc == "/login"
         login!(req, res, acdata, "/members_only")
     elseif rsrc == "/logout"
-        username = get_session_cookie_data(req, "sessionid")
-        is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
+        logout!(req, res, "/home")
     else
         notfound!(res)
     end

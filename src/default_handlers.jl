@@ -24,7 +24,9 @@ end
 
 
 "User has clicked the logout button/link: Redirect to redirect_path."
-function logout!(res, redirect_path::AbstractString)
+function logout!(req, res, redirect_path::AbstractString)
+    username = get_session_cookie_data(req, "sessionid")
+    is_not_logged_in(username) && (notfound!(res); return)
     redirect!(res, redirect_path)
     invalidate_cookie!(res, "sessionid")
 end
