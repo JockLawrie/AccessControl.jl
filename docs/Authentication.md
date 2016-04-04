@@ -130,8 +130,7 @@ function app(req::Request)
     elseif rsrc == "/login"
         login!(req, res, acdata, "/members_only")
     elseif rsrc == "/logout"
-        username = get_session_cookie_data(req, "sessionid")
-        is_logged_in(username) ? logout!(res, "/home") : notfound!(res)
+        logout!(req, res, "/home")
     else
         notfound!(res)
     end
