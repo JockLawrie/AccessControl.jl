@@ -11,7 +11,7 @@ If login is successful, redirect to success_redirect, else return bad_request.
 function login!(req, res, acdata, success_redirect::AbstractString)
     if req.method == "POST"                                           # Require that login requests are POST requests
         username, password = extract_username_password(req)
-	if login_credentials_are_valid(username, password, acdata)    # Successful login: Redirect to members_only page
+	if login_credentials_are_valid(username, password, acdata)    # Successful login: Redirect
 	    redirect!(res, success_redirect)
 	    create_secure_session_cookie(username, res, "sessionid")
 	else                                                          # Unsuccessful login: Return 400: Bad Request
@@ -29,6 +29,24 @@ function logout!(req, res, redirect_path::AbstractString)
     is_not_logged_in(username) && (notfound!(res); return)
     redirect!(res, redirect_path)
     invalidate_cookie!(res, "sessionid")
+end
+
+
+"User has submitted a new password."
+function user_reset_password!(req, res, acdata, success_redirect::AbstractString)
+    username = get_session_cookie_data(req, "sessionid")
+    is_not_logged_in(username) && (notfound!(res); return)
+    if req.method == "POST"
+        current_pwd, new_pwd, new_pwd2 = extract_currpwd_newpwd_newpwd2(req)
+        if login_credentials_are_valid(username, current_pwd, acdata) && new_pwd == new_pwd2    # Successful password reset: Redirect
+            redirect!(res, success_redirect)
+	    set_password!(username, new_pwd)
+        else                                                          # Unsuccessful password reset: Return 400: Bad Request
+            badrequest!(res)
+        end
+    else
+        badrequest!(res)
+    end
 end
 
 
@@ -50,42 +68,5 @@ function redirect!(res, destination_path::AbstractString)
     res.headers["Location"] = destination_path
 end
 
-
-################################################################################
-#= Macro version of handlers.
-
-   These are useful for inserting into existing handlers to enable early returns if a check fails. For example:
-       function myhandler(req, res)
-	   is_not_logged_in(username) && @notfound!(res)
-	   # existing handler code here
-       end
-   This handler checks whether the user is logged in.
-   If not, return notfound!(res), else continue to the existing handler code.
-   This pattern is useful for checking if a user is authorized to access a resource and determining behaviour if the check fails.
-=#
-#=
-macro notfound!(res)
-    return quote
-	notfound!($res)
-	return $res
-    end
-end
-
-
-macro badrequest!(res)
-    return quote
-	badrequest!($res)
-	return $res
-    end
-end
-
-
-macro redirect!(res, destpath)
-    return quote
-	redirect!($res, $destpath)
-	return $res
-    end
-end
-=#
 
 # EOF

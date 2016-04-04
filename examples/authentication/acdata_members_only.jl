@@ -34,3 +34,11 @@ function AccessControl.get_salt_hashedpwd(username::AbstractString, acdata)
     end
     salt, hashed_pwd
 end
+
+
+"Set password for username."
+function AccessControl.set_password!(username, password)
+    if haskey(acdata, username)
+        acdata[username] = StoredPassword(password)
+    end
+end
