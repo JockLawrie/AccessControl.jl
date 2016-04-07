@@ -12,10 +12,10 @@ export login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,
        is_logged_in, is_not_logged_in                                               # utils
 
 
+include("constants.jl")
 include("configure.jl")
 include("default_handlers.jl")
 include("utils.jl")
-include("backends/logged_dict.jl")
 
 
 # Config - to be updated by the app's call to AccessControl.configure()

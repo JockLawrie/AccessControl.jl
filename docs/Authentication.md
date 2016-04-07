@@ -67,13 +67,18 @@ AccessControl.create_user!(acdata, "Bob",   "pwd_bob")
 
 # Handlers
 function home!(req, res)
-    res.data = "This is the home page. Anyone can visit here."
+    res.data = "This is the home page. Anyone can visit here.
+                <br>
+	        <br>
+                $(AccessControl.login_form)"
 end
 
 function members_only!(req, res)
     username = get_session_cookie_data(req, "sessionid")                                # Get username from sessionid cookie if it exists
     is_not_logged_in(username) && (notfound!(res); return)                              # Check whether user has been authenticated
-    res.data = "Welcome $username! This page displays information for members only."    # Note the username in the output
+    res.data = "Welcome $username! This page displays information for members only.
+                <br>
+                $(AccessControl.logout_pwdreset)"
 end
 
 # App
