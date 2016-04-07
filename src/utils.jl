@@ -11,7 +11,7 @@ INPUT:
           For example, an intra-process Dict or a connection to a database from a connection pool.
 """
 function login_credentials_are_valid(username::AbstractString, password::AbstractString, acdata)
-    salt, hashed_pwd = get_salt_hashedpwd(username, acdata)     # Depends on datastore (acdata)...user to implement.
+    salt, hashed_pwd = get_salt_hashedpwd(username, acdata)     # Depends on datastore (acdata)
     password_is_valid(password, salt, hashed_pwd)
 end
 

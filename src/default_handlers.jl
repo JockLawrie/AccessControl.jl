@@ -8,14 +8,17 @@ Process login credentials.
 Login request must be a POST request.
 If login is successful, redirect to success_redirect, else return bad_request.
 """
-function login!(req, res, acdata, success_redirect::AbstractString)
+function login!(req, res)
+    acdata = cfg["acdata"]
+    success_redirect = cfg["login_cfg"]["success_redirect"]
     if req.method == "POST"                                           # Require that login requests are POST requests
         username, password = extract_username_password(req)
 	if login_credentials_are_valid(username, password, acdata)    # Successful login: Redirect
 	    redirect!(res, success_redirect)
 	    create_secure_session_cookie(username, res, "sessionid")
 	else                                                          # Unsuccessful login: Return 400: Bad Request
-	    badrequest!(res)
+	    msg = cfg["login_cfg"]["fail_msg"]
+	    res.data = "<script><alert($(msg));/script>"
 	end
     else
 	badrequest!(res)
@@ -24,7 +27,8 @@ end
 
 
 "User has clicked the logout button/link: Redirect to redirect_path."
-function logout!(req, res, redirect_path::AbstractString)
+function logout!(req, res)
+    redirect_path = cfg["logout_cfg"]["redirect"]
     username = get_session_cookie_data(req, "sessionid")
     is_not_logged_in(username) && (notfound!(res); return)
     redirect!(res, redirect_path)
@@ -32,8 +36,14 @@ function logout!(req, res, redirect_path::AbstractString)
 end
 
 
-"User has submitted a new password."
+"""
+User has submitted a new password.
+
+Lockout occurs if the supplied original password is wrong too many times (defined by cfg["pwdreset_cfg"]).
+"""
 function user_reset_password!(req, res, acdata, success_redirect::AbstractString)
+    acdata = cfg["acdata"]
+    success_redirect = cfg["pwdreset"]["success_redirect"]
     username = get_session_cookie_data(req, "sessionid")
     is_not_logged_in(username) && (notfound!(res); return)
     if req.method == "POST"
@@ -42,13 +52,34 @@ function user_reset_password!(req, res, acdata, success_redirect::AbstractString
             redirect!(res, success_redirect)
 	    set_password!(username, new_pwd)
         else                                                          # Unsuccessful password reset: Return 400: Bad Request
-            badrequest!(res)
+	    msg = cfg["pwdreset_cfg"]["fail_msg"]
+	    res.data = "<script><alert($(msg));/script>"
         end
     else
         badrequest!(res)
     end
 end
 
+
+"Page displayed when user clicks Reset Password link."
+function reset_password!(req, res)
+    username = get_session_cookie_data(req, "sessionid")
+    is_not_logged_in(username) && (notfound!(res); return)
+    res.data = "<h2>Password reset.</h2>
+                <br>
+		<form action='user_reset_password' method='post'>
+	            Current password:<br>
+	            <input type='password' id='current_pwd' name='current_pwd'/>
+	            <br>
+	            New password:<br>
+	            <input type='password' id='new_pwd' name='new_pwd'/>
+	            <br>
+	            Retype new password:<br>
+	            <input type='password' id='new_pwd2' name='new_pwd2'/>
+	            <br>
+                    <input type='submit' value='Reset Password'/>
+		</form>"
+end
 
 function notfound!(res)
     res.status = 404
