@@ -87,7 +87,8 @@ end
 
 # App
 function app(req::Request)
-    res = Response()
+    res  = Response()
+    rsrc = req.resource
     if rsrc == "/home"
         home!(req, res)
     elseif rsrc == "/members_only"
