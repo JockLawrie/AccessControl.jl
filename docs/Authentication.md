@@ -69,7 +69,7 @@ AccessControl.create_user!(acdata, "Bob",   "pwd_bob")
 function home!(req, res)
     res.data = "This is the home page. Anyone can visit here.
                 <br>
-	        <br>
+                <br>
                 $(AccessControl.login_form)"
 end
 
