@@ -81,7 +81,7 @@ end
 
 function members_only!(req, res)
     username = get_session_cookie_data(req, "sessionid")                                # Get username from sessionid cookie if it exists
-    is_not_logged_in(username) && notfound!(res)                                        # Check whether user has been authenticated
+    is_not_logged_in(username) && (notfound!(res); return)                              # Check whether user has been authenticated
     res.data = "Welcome $username! This page displays information for members only."    # Note the username in the output
 end
 
