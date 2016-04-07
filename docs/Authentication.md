@@ -93,7 +93,7 @@ function app(req::Request)
         home!(req, res)
     elseif rsrc == "/members_only"
         members_only!(req, res)
-    elseif haskey(acpaths, rsrc)
+    elseif haskey(acpaths, rsrc)        # Note the additional clause in the if statement for handling access control
         acpaths[rsrc](req, res)
     else
         notfound!(res)
