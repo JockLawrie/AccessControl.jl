@@ -41,7 +41,7 @@ User has submitted a new password.
 
 Lockout occurs if the supplied original password is wrong too many times (defined by cfg["pwdreset_cfg"]).
 """
-function user_reset_password!(req, res, acdata, success_redirect::AbstractString)
+function user_reset_password!(req, res)
     acdata = cfg["acdata"]
     success_redirect = cfg["pwdreset"]["success_redirect"]
     username = get_session_cookie_data(req, "sessionid")
