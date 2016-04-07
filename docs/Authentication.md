@@ -1,6 +1,5 @@
 #Authentication 
 
-### Example 1
 Consider the following app:
 ```julia
 using HttpServer
@@ -37,18 +36,17 @@ server = Server((req, res) -> app(req))
 run(server, 8000)
 ```
 
-### Example 2
 As it stands, the app allows anyone to see the information that is intended for members only. Lets require users to login to access the restricted information. We will alter the app as follows:
 - Run the app under HTTPS, not just HTTP (otherwise the username and password can be intercepted and read by an attacker).
 - Add a login form to the home page.
 - If login is successful, redirect the user to the members-only page and display member-specific content (in this example, the member's name).
-- If login is not successful return _400: Bad Request_.
+- If login is not successful return a message for the user.
 - Add logout and password reset links to the members-only page.
 - If a user who is not logged in tries to access the members-only page, return _404: Not Found_ (this is a security measure: an attacker doesn't know whether the resource exists and is forbidden, or the resource doesn't exist).
 - If the user has logged in and requests the members-only page, return the requested resource.
 - If the user has logged in and requests a non-existent resource, return _404: Not Found_.
+- If password reset is successful, redirect the user to the members-only page, otherwise return a message for the user.
 - On logout, redirect the user to the home page.
-- Allow the user to reset his/her password.
 
 The resulting app looks like this:
 ```julia
@@ -110,5 +108,5 @@ run(server, port = 8000, ssl = (cert, key))
 
 ### Notes
 1. The password reset functionality can be omitted by setting `pwdreset_config = nothing`, or by calling `AccessControl.configure(acdata, login_config, logout_config)`.
-2. The authentication check could be moved out of the `members_only` handler. In this example it makes little difference, but this approach will suit some apps and not others.
+2. The authentication check could be moved out of the `members_only!` handler. In this example it makes little difference, but this approach will suit some apps and not others.
 3. The `notfound!` handler is included in `AccessControl`.
