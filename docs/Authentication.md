@@ -70,7 +70,7 @@ logout_config   = Dict("redirect" => "/home")
 pwdreset_config = Dict("success_redirect" => "/members_only")
 AccessControl.configure(acdata, login_config, logout_config, pwdreset_config)
 
-# Add users to acdata: INSECURE - see [Admin Access](AdminAccess.md) for the secure way to do this
+# Add users to acdata: INSECURE!!! See Admin Access for the secure way to do this
 AccessControl.create_user!(acdata, "Alice", "pwd_alice")
 AccessControl.create_user!(acdata, "Bob",   "pwd_bob")
 
