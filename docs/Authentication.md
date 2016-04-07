@@ -54,15 +54,6 @@ using HttpServer
 using AccessControl
 using LoggedDicts    # Data store for access control data (users, login credentials, permissions)
 
-# Generate certificate and key for https
-rel(filename::AbstractString, p::AbstractString) = joinpath(dirname(filename), p)
-if !isfile("keys/server.crt")
-    @unix_only begin
-	run(`mkdir -p $(rel(filename, "keys"))`)
-	run(`openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(rel(filename, "keys/server.key")) -out $(rel(filename, "keys/server.crt"))`)
-    end
-end
-
 # Configure access control
 acdata          = LoggedDict("acdata", "acdata.log")    # Init access control data
 login_config    = Dict("max_attempts" => 5, "lockout_duration" => 1800, "success_redirect" => "/members_only", "fail_msg" => "Username and/or password incorrect")
@@ -99,6 +90,16 @@ function app(req::Request)
         notfound!(res)
     end
     res
+end
+
+
+# Run the app under HTTPS rather than HTTP
+rel(filename::AbstractString, p::AbstractString) = joinpath(dirname(filename), p)
+if !isfile("keys/server.crt")
+    @unix_only begin
+	run(`mkdir -p $(rel(filename, "keys"))`)
+	run(`openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(rel(filename, "keys/server.key")) -out $(rel(filename, "keys/server.crt"))`)
+    end
 end
 
 server = Server((req, res) -> app(req))
