@@ -1,7 +1,32 @@
 # Sessions
 
+# Config
+#max_n_sessions: Max number of simultaneous sessions per user
+#limit_rate: Number of requests per minute for the given session
+session_config = Dict("max_n_sessions" => 1, limit_rate => 100)
+
+# Create "id" cookie in res and return session::Dict with "id" set.
+session = create_session(res, "id", secure = true)    # secure=true means use secure cookie
+
+# set session key-value pairs here
+
+# Write session to data store
+# For client-side sessions, the data store is the secure cookie
+write_session(res::Response, "id", session)    # For client-side sessions
+write_session(data_store, session)             # For server-side sessions
+
+# Read session from data store
+session = read_session(req, "id")                 # For client-side sessions
+session = read_session(data_store, session_id)    # For server-side sessions
+
+# Delete session
+delete_session!(res, "id")                # For client-side sessions
+delete_session!(res, "id", data_store)    # For server-side sessions
 
 
+
+
+################
 A session object is simply a Dict with the form: `Dict("id" => session_id, ...)`. That is, the "id" entry is required.
 
 ### Example 1
