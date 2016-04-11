@@ -6,11 +6,10 @@
 #=
   Default session config
     - securecookies::Bool   If true, use secure cookies instead of plain-text cookies
-    - serverside::Bool      True if sessions are server-side
     - max_n_sessions::Int   Max number of simultaneous sessions per user
     - timeout::Int          Number of seconds between requests that results in a session timeout
 =#
-session_config = Dict("securecookies" => true, "serverside" => true,  "max_n_sessions" => 1, "timeout" => 600)
+session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" => 600)
 
 
 function create_session()
