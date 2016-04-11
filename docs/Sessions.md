@@ -75,7 +75,7 @@ using AccessControl
 function home!(req, res)
     session = read_session(req, "id")
     if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-	session  = create_session()
+        session  = create_session()
         res.data = "This is your first visit."
     else
         last_visit = session["lastvisit"]
@@ -115,7 +115,7 @@ sessions = LoggedDict("sessions", "sessions.log"; logging = false)
 function home!(req, res)
     session_id = read_sessionid(req, "id")
     if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-	session_id = create_session(sessions, res, "id")
+        session_id = create_session(sessions, res, "id")
         res.data   = "This is your first visit."
     else
         last_visit = get(sessions, session_id, "lastvisit")
