@@ -6,7 +6,7 @@ TODO:
 =#
 
 using HttpCommon
-using SecureSessions
+using JSON
 
 export login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers
        is_logged_in, is_not_logged_in                                               # utils

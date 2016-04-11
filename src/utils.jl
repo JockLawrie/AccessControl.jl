@@ -3,6 +3,15 @@
 =#
 
 
+"Cryptographically secure RNG"
+function csrng(numbytes::Integer)
+    entropy = MbedTLS.Entropy()
+    rng     = MbedTLS.CtrDrbg()
+    MbedTLS.seed!(rng, entropy)
+    rand(rng, numbytes)
+end
+
+
 """
 Returns true if username and password are valid.
 
