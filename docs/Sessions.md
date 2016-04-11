@@ -6,7 +6,7 @@ A session is a conversation between the server and a client. More formally, a se
 1. Establishing the client's identity, for example via login with a username and password.
 2. Granting/denying the client access to the requested resource according to the application's permissions settings (more on this later).
 
-A session object is simply a Dict with the form: `Dict("id" => session_id, ...)`. That is, the "id" entry is required.
+Conceptually, a session object is simply a Dict with the form: `Dict("id" => session_id, ...)`. That is, the "id" entry is required. The actual implementation differs depending on where the session is stored...
 
 ## Client-side sessions vs server-side sessions
 A session is a client-side session if it is stored in a cookie in the response. Typically the cookie has the form `id=session`, where `id` is the cookie name that the server recognizes as the session cookie name, and `session` is a string repsentation of a session object, usually encrypted. When a request comes in, the server extracts the session object from the session cookie.
@@ -34,7 +34,7 @@ It is often argued that client-side cookies scale better than server-side cookie
 __NOTE__: In these docs we run all examples under HTTPS rather than HTTP. This security measure prevents attackers from reading our requests and responses directly off the wire. To do so we call `generate_key_cert` prior to running the server.
 
 ## The Basic API
-
+Both client-side and server-side sessions have the following `session_config` in common, which can be modified as desired:
 ```julia
 #=
   Config
@@ -43,31 +43,63 @@ __NOTE__: In these docs we run all examples under HTTPS rather than HTTP. This s
     - timeout::Int          Number of seconds between requests that results in a session timeout
 =#
 session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" => 600)
+```
 
-
-########################
+Client-side sessions are `Dict`s stored in a cookie. They have the following create, read and delete functions. Updating sessions occurs on the server using standard Julia syntax for modifying `Dict`s.
+```julia
 ### Client-side sessions
-
 session = create_session()           # Return Dict("id" => session_id)
 session = read_session(req, "id")    # Read the session from the request's "id" cookie
 write_session(res, "id", session)    # Write the session object to the response's "id" cookie
-delete_session!(res, "id")           # Delete session from response
+delete_session!(res, "id")           # Set the response's "id" cookie to an invalid state
+```
 
-
-########################
+Server-side sessions store a session ID in a cookie AND a session object on the database. The implementation of the session object depends on the database used. This package provides the following CRUD (create/read/update/delete) functions. Currently `LoggedDict`s and Redis are the only supported databases.
+```julia
 ### Server-side sessions
-
 session_id = create_session(con, res, "id")    # Init "id" => session_id on the database and set the "id" cookie to session_id
 session_id = read_sessionid(req, "id")         # Read the session_id from the "id" cookie
 get(con, keys...)                              # Read the value located at the path defined by keys...
-set(con, keys..., value)                       # Set the value located at the path defined by keys...
-delete_session!(con, res, "id")                # Delete session from database and the "id" cookie from the response
+set!(con, keys..., value)                      # Set the value located at the path defined by keys...
+delete_session!(con, session_id, res, "id")    # Delete session from database and set the response's "id" cookie to an invalid state
 ```
 
-## Example: Display last visit.
+## Example 1: Display last visit
 This example displays the timestamp of the requestor's last visit. Run it and visit `https://0.0.0.0:8000/home`. Reload the page (Ctrl-r) to see it update.
 
-### Version: client-side sessions
+We show 3 versions: client-side sessions, server-side sessions with a `LoggedDict` as the database, and server-side sessions with Redis as the database. The 3 versions have the following code in common:
+```julia
+### INSERT HANDLER AND ANY OTHER DEPENDENCIES HERE
+
+# App
+function app(req::Request)
+    res = Response()
+    if req.resource == "/home"
+        home!(req, res)
+    else
+        notfound!(res)
+    end
+    res
+end
+
+### Run the app under HTTPS
+# Generate keys/server.key and keys/server.crt if they don't already exist
+rel(filename::AbstractString, p::AbstractString) = joinpath(dirname(filename), p)
+if !isfile("keys/server.crt")
+    @unix_only begin
+	run(`mkdir -p $(rel(filename, "keys"))`)
+	run(`openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(rel(filename, "keys/server.key")) -out $(rel(filename, "keys/server.crt"))`)
+    end
+end
+
+# Define and run the server
+server = Server((req, res) -> app(req))
+cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
+key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
+run(server, port = 8000, ssl = (cert, key))
+```
+
+### Example 1a: client-side sessions
 ```julia
 using AccessControl
 
@@ -84,26 +116,9 @@ function home!(req, res)
     session["last_visit"] = string(now())
     write_session(res, "id", session)
 end
-
-# App
-function app(req::Request)
-    res = Response()
-    if req.resource == "/home"
-        home!(req, res)
-    else
-        notfound!(res)
-    end
-    res
-end
-
-generate_key_cert(@__FILE__)     # Generates keys/server.key and keys/server.crt if they don't already exist
-server = Server((req, res) -> app(req))
-cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
-key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
-run(server, port = 8000, ssl = (cert, key))
 ```
 
-### Version: server-side sessions with LoggedDict as database
+### Example 1b: server-side sessions with LoggedDict as database
 ```julia
 using AccessControl
 using LoggedDicts
@@ -123,26 +138,9 @@ function home!(req, res)
     end
     set!(sessions, session_id, "lastvisit", string(now()))
 end
-
-# App
-function app(req::Request)
-    res = Response()
-    if req.resource == "/home"
-        home!(req, res)
-    else
-        notfound!(res)
-    end
-    res
-end
-
-generate_key_cert(@__FILE__)     # Generates keys/server.key and keys/server.crt if they don't already exist
-server = Server((req, res) -> app(req))
-cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
-key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
-run(server, port = 8000, ssl = (cert, key))
 ```
 
-### Version: server-side sessions with Redis as database
+### Example 1c: server-side sessions with Redis as database
 ```julia
 using AccessControl
 using Redis
@@ -152,38 +150,20 @@ cp = ConnectionPool(RedisConnection(), 1, 10, 10, 500, 10)    # Pool of connecti
 
 # Handler
 function home!(req, res)
-    conn = get_connection!(cp)                      # Get a connection to Redis database from the connection pool
+    con = get_connection!(cp)                                 # Get a connection to Redis database from the connection pool
 
     session_id = read_sessionid(req, "id")
-    if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session_id = create_session(conn, res, "id")
+    if session_id == ""                                       # "id" cookie does not exist...session hasn't started...start a new session.
+        session_id = create_session(con, res, "id")
         res.data   = "This is your first visit."
     else
         last_visit = get(conn, session_id, "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
     end
-    set!(conn, session_id, "lastvisit", string(now()))
+    set!(con, session_id, "lastvisit", string(now()))
 
-    free!(cp, conn)                                 # Release the connection back to the connection pool
+    free!(cp, con)                                            # Release the connection back to the connection pool
 end
-
-
-# App
-function app(req::Request)
-    res = Response()
-    if req.resource == "/home"
-        home!(req, res)
-    else
-        notfound!(res)
-    end
-    res
-end
-
-generate_key_cert(@__FILE__)     # Generates keys/server.key and keys/server.crt if they don't already exist
-server = Server((req, res) -> app(req))
-cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
-key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
-run(server, port = 8000, ssl = (cert, key))
 ```
 
 ## Todo
