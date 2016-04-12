@@ -135,7 +135,7 @@ function securecookie_is_valid(cookie_value::AbstractString)
 
     # Determine conditions
     current_time = get_timestamp()
-    expired      = current_time > timestamp + session_timeout
+    expired      = current_time > timestamp + cookie_max_age
     hmac_sig2    = digest(MD_SHA256, vcat(ts_uint8, data_blob), session_key)
     hmac_ok      = hmac_sig2 == hmac_signature
 
@@ -150,10 +150,40 @@ end
 
 """
 Invalidates the cookie with name == cookie_name.
-Curently this works by setting the Max-Age to 0.
+Curently this works by setting:
+- Max-Age = 0
+- Data    = ""
 """
 function invalidate_cookie!(res::Response, cookie_name::AbstractString)
     setcookie!(res, cookie_name, utf8(""), Dict("Max-Age" => utf8("0")))
+end
+
+
+################################################################################
+# Utils
+################################################################################
+"""
+Returns: Milliseconds since the epoch.
+Takes 13 characters (valid until some time around the year 2287).
+"""
+function get_timestamp()
+    1000 * convert(Int, Dates.datetime2unix(now()))
+end
+
+
+"Inserts derived values for keys: :const_key, :const_iv, :cookie_attr."
+function update_securecookie_config!(k::Symbol)
+    if k == :key_length    # :key_length has changed >> update :const_key
+	key_length = config[:securecookie][:key_length]
+	config[:securecookie][:const_key] = csrng(key_length)          # Symmetric key for encrypting secret_keys (with 256-bit encryption)
+    elseif k == :block_size
+	block_size = config[:securecookie][:block_size]
+	config[:securecookie][:const_iv]  = csrng(block_size)          # IV for encrypting secret_keys
+    elseif k == :cookie_max_age
+	max_age    = config[:securecookie][:cookie_max_age]
+	timeout_str = utf8(string(convert(Int64, 0.001 * max_age)))    # Session timeout in seconds, represented as a string
+	config[:securecookie][:cookie_attr] = Dict("Max-Age" => timeout_str, "Secure" => "", "HttpOnly" => "")
+    end
 end
 
 

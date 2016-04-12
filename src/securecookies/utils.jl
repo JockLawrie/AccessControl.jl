@@ -60,17 +60,6 @@ function password_is_permissible(password)
     result
 end
 
-
-"""
-Returns: Milliseconds since the epoch.
-
-Takes 13 characters (valid until some time around the year 2287).
-"""
-function get_timestamp()
-    1000 * convert(Int, Dates.datetime2unix(now()))
-end
-
-
 """
 Convert number to byte array.
 The implementation is a modified version of that found in Stack Overflow question 3076680.

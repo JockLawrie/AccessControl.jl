@@ -2,6 +2,20 @@
     Contents: Non app-specific utilities.
 =#
 
+"Update config and trigger update of downstream values."
+function update_config!(k1::Symbol, k2::Symbol, val)
+    config[k1][k2] = val
+    if k1 == :securecookie
+	update_securecookie_config!(k2)
+    end
+end
+
+
+"Returns true if the application is using secure cookies."
+function using_secure_cookies()
+    haskey(config, :securecookie)
+end
+
 
 "Cryptographically secure RNG"
 function csrng(numbytes::Integer)
@@ -11,6 +25,8 @@ function csrng(numbytes::Integer)
     rand(rng, numbytes)
 end
 
+################################################################################
+################################################################################
 
 """
 Returns true if username and password are valid.

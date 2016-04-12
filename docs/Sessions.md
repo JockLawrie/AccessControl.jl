@@ -101,6 +101,7 @@ run(server, port = 8000, ssl = (cert, key))
 
 ### Example 1a: client-side sessions
 ```julia
+using HttpServer
 using AccessControl
 
 # Handler
@@ -167,6 +168,7 @@ end
 ```
 
 ## Todo
-1. Rate limiting. Limit the number of requests that a user can make per minute. This is aimed at preventing denial-of-service attacks.
+1. Implement support for server-side sessions with other databases.
+2. Rate limiting. Limit the number of requests that a user can make per minute. This is aimed at preventing denial-of-service attacks.
     - rate_limit:       Max number of requests per minute for the given session. Defaults to 100.
     - lockout_duration: Duration (in seconds) of lockout after rate_limit has been reached. Defaults to 1800 (30 mins).

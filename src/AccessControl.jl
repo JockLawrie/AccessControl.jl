@@ -5,26 +5,44 @@ TODO:
 - pwdreset!: max_attempts, lockout (use login settings)
 =#
 
-using HttpCommon
+using HttpServer
+using MbedTLS
 using JSON
 
-export login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers
-       is_logged_in, is_not_logged_in                                               # utils
+export
+    create_session, read_session, write_session, delete_session!     # Client-side session
 
 
-include("constants.jl")
-include("configure.jl")
-include("default_handlers.jl")
+#export login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers
+#       is_logged_in, is_not_logged_in,                                              # utils
+#       update_config!    # utils
+
+
+# Sessions
+include("securecookies/secure_cookies.jl")
+include("sessions/clientside_sessions.jl")
+include("sessions/serverside_sessions.jl")
+
+#include("configure.jl")
+#include("default_forms.jl")
+#include("default_handlers.jl")
 include("utils.jl")
 
 
 # Config - to be updated by the app's call to AccessControl.configure()
-cfg                   = Dict{AbstractString, Any}()
-#cfg["admin_password"] = nothing
-cfg["acdata"]         = nothing    # No default data store for access control data
-cfg["login_cfg"]      = Dict("max_attempts" => 5, "lockout_duration" => 1800, "success_redirect" => "/", "fail_msg" => "Username and/or password incorrect.")
-cfg["logout_cfg"]     = Dict("redirect" => "/")
-cfg["pwdreset_cfg"]   = Dict("max_attempts" => 5, "lockout_duration" => 1800, "success_redirect" => "/", "fail_msg" => "Password incorrect.")
+config                   = Dict{Symbol, Any}()
+config[:admin_password]  = nothing
+config[:acdata]          = nothing    # No default data store for access control data
+config[:session]         = Dict(:max_n_sessions => 1, :timeout => 600)
+config[:login_config]    = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Username and/or password incorrect.")
+config[:logout_config]   = Dict(:redirect => "/")
+config[:pwdreset_config] = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Password incorrect.")
+config[:securecookie]    = Dict(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
+                                :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
+                                :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
+update_securecookie_config!(:cookie_max_age)
+update_securecookie_config!(:key_length)
+update_securecookie_config!(:block_size)
 
 
 # Access control paths
