@@ -9,7 +9,7 @@ using HttpServer
 using MbedTLS
 using JSON
 
-import Redis.get
+import Redis.get, LoggedDicts.set!
 
 export
     create_session, read_session, write_session!, delete_session!,    # Client-side sessions
@@ -36,7 +36,9 @@ config[:securecookie]    = Dict{Symbol, Any}(:cookie_max_age => 5 * 60 * 1000,  
 # Sessions
 include("securecookies/secure_cookies.jl")
 include("sessions/clientside_sessions.jl")
-include("sessions/serverside_sessions.jl")
+include("sessions/serverside_sessions/serverside_common.jl")
+include("sessions/serverside_sessions/serverside_loggeddict.jl")
+include("sessions/serverside_sessions/serverside_redis.jl")
 
 #include("configure.jl")
 #include("default_forms.jl")
