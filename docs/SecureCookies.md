@@ -5,8 +5,6 @@
 
 ## API
 ```julia
-Pkg.add("SecureCookies")
-using SecureCookies
 using HttpCommon
 
 # Create a secure cookie called "id" (use a generic name) and include it in the response.

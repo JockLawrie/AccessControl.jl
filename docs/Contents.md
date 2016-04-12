@@ -5,4 +5,5 @@
 3. [Authentication](Authentication.md)
 4. Authorization
 5. Deploying AccessControl as a stand-alone service
+
 - [Appendix A: Secure Cookies](SecureCookies.md)
