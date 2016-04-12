@@ -22,7 +22,7 @@ Create a secure session cookie for the response.
 The cookie value includes the encryption of the supplied data.
 The Secure and HttpOnly attributes are set according to global variables.
 """
-function set_securecookie!(res::Response, cookie_name::AbstractString, data::AbstractString, attr = default_attributes)
+function set_securecookie!(res::Response, cookie_name::AbstractString, data::AbstractString, attr = config[:securecookie][:cookie_attr])
     cookie_value = create_securecookie_value(data)
     setcookie!(res, cookie_name, utf8(cookie_value), attr)
 end
@@ -37,6 +37,8 @@ Output: Cookie value (ASCIIString)
 Note: Binary data is base64 encoded for transport in http headers (base64 is more space efficient than hex encoding).
 """
 function create_securecookie_value(plaintext::AbstractString)
+    key_length, block_size, const_key, const_iv = get_securecookie_config()
+
     # Encrypt data 
     session_key = csrng(key_length)
     session_iv  = csrng(block_size)
@@ -119,6 +121,9 @@ cookie_is_valid is true if session cookie:
 2) hmac_signature == HMAC(secret key, timestamp * data_blob)
 """
 function securecookie_is_valid(cookie_value::AbstractString)
+    key_length, block_size, const_key, const_iv = get_securecookie_config()
+    cookie_max_age = config[:securecookie][:cookie_max_age]
+
     # Extract cookie data
     cookie_value   = base64decode(cookie_value)
     session_iv     = cookie_value[1:block_size]
@@ -180,10 +185,16 @@ function update_securecookie_config!(k::Symbol)
 	block_size = config[:securecookie][:block_size]
 	config[:securecookie][:const_iv]  = csrng(block_size)          # IV for encrypting secret_keys
     elseif k == :cookie_max_age
-	max_age    = config[:securecookie][:cookie_max_age]
+	max_age     = config[:securecookie][:cookie_max_age]
 	timeout_str = utf8(string(convert(Int64, 0.001 * max_age)))    # Session timeout in seconds, represented as a string
 	config[:securecookie][:cookie_attr] = Dict("Max-Age" => timeout_str, "Secure" => "", "HttpOnly" => "")
     end
+end
+
+
+function get_securecookie_config()
+    d = config[:securecookie]
+    d[:key_length], d[:block_size], d[:const_key], d[:const_iv]
 end
 
 

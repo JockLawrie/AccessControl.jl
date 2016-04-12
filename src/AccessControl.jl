@@ -10,7 +10,7 @@ using MbedTLS
 using JSON
 
 export
-    create_session, read_session, write_session, delete_session!     # Client-side session
+    create_session, read_session, write_session, delete_session!     # Client-side sessions
 
 
 #export login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers
@@ -21,11 +21,11 @@ export
 # Sessions
 include("securecookies/secure_cookies.jl")
 include("sessions/clientside_sessions.jl")
-include("sessions/serverside_sessions.jl")
+#include("sessions/serverside_sessions.jl")
 
 #include("configure.jl")
 #include("default_forms.jl")
-#include("default_handlers.jl")
+include("default_handlers.jl")
 include("utils.jl")
 
 
@@ -37,20 +37,20 @@ config[:session]         = Dict(:max_n_sessions => 1, :timeout => 600)
 config[:login_config]    = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Username and/or password incorrect.")
 config[:logout_config]   = Dict(:redirect => "/")
 config[:pwdreset_config] = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Password incorrect.")
-config[:securecookie]    = Dict(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
-                                :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
-                                :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
+config[:securecookie]    = Dict{Symbol, Any}(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
+                                             :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
+                                             :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
 update_securecookie_config!(:cookie_max_age)
 update_securecookie_config!(:key_length)
 update_securecookie_config!(:block_size)
 
 
 # Access control paths
-acpaths = Dict{AbstractString, AbstractString}()
-acpaths["/login"]            = login!
-acpaths["/logout"]           = logout!              # Redirect user according to cfg
-acpaths["/reset_password"]   = reset_password!      # Display password reset form
-acpaths["/process_pwdreset"] = process_pwdreset!    # Handle credentials supplied by user as part of password reset
+#acpaths = Dict{AbstractString, AbstractString}()
+#acpaths["/login"]            = login!
+#acpaths["/logout"]           = logout!              # Redirect user according to cfg
+#acpaths["/reset_password"]   = reset_password!      # Display password reset form
+#acpaths["/process_pwdreset"] = process_pwdreset!    # Handle credentials supplied by user as part of password reset
 
 
 #=

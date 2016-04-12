@@ -4,7 +4,7 @@
 
 "Returns a session object with 'id' => session_id, where session_id is randomly generated."
 function create_session()
-    Dict("id" => bytestring(csrng(32)))
+    Dict("id" => base64encode(csrng(32)))
 end
 
 "Read the session from the specified cookie."
@@ -15,7 +15,7 @@ function read_session(req::Request, cookiename::AbstractString)
     else
 	s = get_cookie_value(req, cookiename)
     end
-    JSON.parse(s)
+    s == "" ? s : JSON.parse(s)
 end
 
 "Write the session object to the specified cookie."

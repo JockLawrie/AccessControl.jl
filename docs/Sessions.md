@@ -87,8 +87,8 @@ end
 rel(filename::AbstractString, p::AbstractString) = joinpath(dirname(filename), p)
 if !isfile("keys/server.crt")
     @unix_only begin
-	run(`mkdir -p $(rel(filename, "keys"))`)
-	run(`openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(rel(filename, "keys/server.key")) -out $(rel(filename, "keys/server.crt"))`)
+	run(`mkdir -p $(rel(@__FILE__, "keys"))`)
+	run(`openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(rel(@__FILE__, "keys/server.key")) -out $(rel(@__FILE__, "keys/server.crt"))`)
     end
 end
 
@@ -114,7 +114,7 @@ function home!(req, res)
         last_visit = session["lastvisit"]
         res.data   = "Welcome back. Your last visit was at $last_visit."
     end
-    session["last_visit"] = string(now())
+    session["lastvisit"] = string(now())
     write_session(res, "id", session)
 end
 ```
