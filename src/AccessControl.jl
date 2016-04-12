@@ -9,9 +9,11 @@ using HttpServer
 using MbedTLS
 using JSON
 
+import Redis.get
+
 export
     create_session, read_session, write_session!, delete_session!,    # Client-side sessions
-    read_sessionid                                                    # Server-side session
+    read_sessionid, set!, get                                         # Server-side sessions
 
 
 #export login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers

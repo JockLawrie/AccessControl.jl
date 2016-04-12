@@ -144,27 +144,30 @@ end
 
 ### Example 1c: server-side sessions with Redis as database
 ```julia
+using HttpServer
 using AccessControl
 using Redis
 using ConnectionPools
 
-cp = ConnectionPool(RedisConnection(), 1, 10, 10, 500, 10)    # Pool of connections to the Redis database
+# Database
+cp  = ConnectionPool(RedisConnection(), 0, 10, 10, 500, 10)    # Pool of connections to the Redis database
+con = get_connection!(cp)
+sadd(con, "session:keypaths", "lastvisit")
+free!(cp, con)
 
 # Handler
 function home!(req, res)
-    con = get_connection!(cp)                                 # Get a connection to Redis database from the connection pool
-
+    con        = get_connection!(cp)                           # Get a connection to Redis database from the connection pool
     session_id = read_sessionid(req, "id")
-    if session_id == ""                                       # "id" cookie does not exist...session hasn't started...start a new session.
+    if session_id == ""                                        # "id" cookie does not exist...session hasn't started...start a new session.
         session_id = create_session(con, res, "id")
         res.data   = "This is your first visit."
     else
-        last_visit = get(conn, session_id, "lastvisit")
+	last_visit = get(con, "session:$session_id", "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
     end
-    set!(con, session_id, "lastvisit", string(now()))
-
-    free!(cp, con)                                            # Release the connection back to the connection pool
+    set!(con, "session:$session_id", "lastvisit", string(now()))
+    free!(cp, con)                                             # Release the connection back to the connection pool
 end
 ```
 
