@@ -144,7 +144,7 @@ end
 ```
 
 ### Example 1c: server-side sessions with Redis as database
-Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in Redis. Since Redis can't nest data like this, flatten the keys and store `k1:k2:k3 => v`.
+Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in Redis. Since Redis can't nest data like this, we flatten the keys and store `k1:k2:k3 => v`.
 
 __Definition:__ A _key path_ is the path defined by an ordered sequence of keys.
 
@@ -153,7 +153,7 @@ To store sessions in Redis we use the following schema:
 
 - "sessions" => Set(session_id1, ...),      set of current valid session_ids.
 - "session:$(session_id):$(keypath)" => v,  key-value pairs for session_id.
-- "session:keypaths" => Set(keypaths...),   exploits the fact that session fields come from a common app-specific set.
+- "session:keypaths" => Set(keypath1, ...), exploits the fact that session fields come from a common app-specific set.
 ```julia
 using HttpServer
 using AccessControl
