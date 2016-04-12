@@ -48,16 +48,16 @@ session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" 
 Client-side sessions are `Dict`s stored in a cookie. They have the following create, read and delete functions. Updating sessions occurs on the server using standard Julia syntax for modifying `Dict`s.
 ```julia
 ### Client-side sessions
-session = create_session()           # Return Dict("id" => session_id)
-session = read_session(req, "id")    # Read the session from the request's "id" cookie
-write_session(res, "id", session)    # Write the session object to the response's "id" cookie
-delete_session!(res, "id")           # Set the response's "id" cookie to an invalid state
+session = create_session()            # Return Dict("id" => session_id)
+session = read_session(req, "id")     # Read the session from the request's "id" cookie
+write_session!(res, "id", session)    # Write the session object to the response's "id" cookie
+delete_session!(res, "id")            # Set the response's "id" cookie to an invalid state
 ```
 
 Server-side sessions store a session ID in a cookie AND a session object on the database. The implementation of the session object depends on the database used. This package provides the following CRUD (create/read/update/delete) functions. Currently `LoggedDict`s and Redis are the only supported databases.
 ```julia
 ### Server-side sessions
-session_id = create_session(con, res, "id")    # Init "id" => session_id on the database and set the "id" cookie to session_id
+session_id = create_session(con, res, "id")    # Init session_id => session on the database and set the "id" cookie to session_id
 session_id = read_sessionid(req, "id")         # Read the session_id from the "id" cookie
 get(con, keys...)                              # Read the value located at the path defined by keys...
 set!(con, keys..., value)                      # Set the value located at the path defined by keys...
@@ -115,7 +115,7 @@ function home!(req, res)
         res.data   = "Welcome back. Your last visit was at $last_visit."
     end
     session["lastvisit"] = string(now())
-    write_session(res, "id", session)
+    write_session!(res, "id", session)
 end
 ```
 
@@ -126,7 +126,7 @@ using AccessControl
 using LoggedDicts
 
 # Database
-sessions = LoggedDict("sessions", "sessions.log", true)
+sessions = LoggedDict("sessions", "sessions.log", true)    # Logging turned off
 
 # Handler
 function home!(req, res)

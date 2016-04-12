@@ -2,41 +2,34 @@
     Contents: Create, read, update and delete functions for server-side sessions.
 =#
 
-session_id = create_session(con, res, "id")    # Init "id" => session_id on the database and set the "id" cookie to session_id
-session_id = read_sessionid(req, "id")         # Read the session_id from the "id" cookie
-get(con, keys...)                              # Read the value located at the path defined by keys...
-set!(con, keys..., value)                      # Set the value located at the path defined by keys...
-delete_session!(con, session_id, res, "id")    # Delete session from database and set the response's "id" cookie to an invalid state
+
+################################################################################
+### Common to all databases
+"Read the session_id from the specified cookie."
+function read_sessionid(req::Request, cookiename::AbstractString)
+    using_secure_cookies() ? get_securecookie_data(req, cookiename) : get_cookie_value(req, cookiename)
+end
 
 
 ################################################################################
 ### LoggedDict as database
+using LoggedDicts
 
-
-function create_session()
-    session_id = bytestring(csrng(32))
-    Dict("id" => session_id)
+"""
+Init session_id => session on the database and set the specified cookie to session_id.
+Return: session_id
+"""
+function create_session(ld::LoggedDict, res::Response, cookiename::AbstractString)
+    session_id = generate_session_id()
+    set!(ld, session_id, Dict())
+    write_to_cookie!(res, cookiename, session_id)
+    session_id
 end
 
-
-function write_sessionid(res, cookiename, session_id)
-    !session_config["serverside"] && error("Cannot write client-side session ID directly to cookie. Write entire session instead.")
-    session_config["securecookies"] ? set_securecookie!(res, "id", session_id) : setcookie!(res, cookiename, session_id)
-end
-
-
-function read_sessionid(req, cookiename)
-    data = get_securecookie_date(req, cookiename)
-    session_config["serverside"] ? data : data["id"]
-end
-
-function write_session(res::Response, cookiename, session::Dict, secure=true)
-    data = JSON.json(session)
-    if secure
-	set_securecookie!(res, "id", data)
-    else
-	setcookie!(res, cookiename, data)
-    end
+"Delete session from database and set the specified cookie to an invalid state."
+function delete_session!(ld::LoggedDict, session_id::AbstractString, res::Response, cookiename::AbstractString)
+    delete!(ld, session_id)
+    delete_session!(res, cookiename)
 end
 
 

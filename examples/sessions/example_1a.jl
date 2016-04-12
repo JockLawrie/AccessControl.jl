@@ -15,7 +15,7 @@ function home!(req, res)
         res.data   = "Welcome back. Your last visit was at $last_visit."
     end
     session["lastvisit"] = string(now())
-    write_session(res, "id", session)
+    write_session!(res, "id", session)
 end
 
 # App
