@@ -120,6 +120,7 @@ end
 ```
 
 ### Example 1b: server-side sessions with LoggedDict as database
+Here the `sessions` object serves as our database. It is a `Dict` with key-value pairs: `session_id => session_object`, where `session_object` is also a `Dict`.
 ```julia
 using HttpServer
 using AccessControl
@@ -143,6 +144,16 @@ end
 ```
 
 ### Example 1c: server-side sessions with Redis as database
+Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in Redis. Since Redis can't nest data like this, flatten the keys and store `k1:k2:k3 => v`.
+
+__Definition:__ A _key path_ is the path defined by an ordered sequence of keys.
+
+In our example the key path was written as `k1:k2:k3`, but any similar notation will suffice.
+To store sessions in Redis we use the following schema:
+
+- "sessions" => Set(session_id1, ...),      set of current valid session_ids.
+- "session:$(session_id):$(keypath)" => v,  key-value pairs for session_id.
+- "session:keypaths" => Set(keypaths...),   exploits the fact that session fields come from a common app-specific set.
 ```julia
 using HttpServer
 using AccessControl
