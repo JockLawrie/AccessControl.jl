@@ -144,7 +144,7 @@ end
 ```
 
 ### Example 1c: server-side sessions with Redis as database
-Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in Redis. Since Redis can't nest data like this, we flatten the keys and store `k1:k2:k3 => v`.
+Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in Redis. Since Redis can't nest data like this, we flatten the sequence of keys and store `k1:k2:k3 => v`.
 
 __Definition:__ A _key path_ is the path defined by an ordered sequence of keys.
 
