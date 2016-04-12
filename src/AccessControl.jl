@@ -21,7 +21,7 @@ export
 # Sessions
 include("securecookies/secure_cookies.jl")
 include("sessions/clientside_sessions.jl")
-#include("sessions/serverside_sessions.jl")
+include("sessions/serverside_sessions.jl")
 
 #include("configure.jl")
 #include("default_forms.jl")

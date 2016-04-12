@@ -121,11 +121,12 @@ end
 
 ### Example 1b: server-side sessions with LoggedDict as database
 ```julia
+using HttpServer
 using AccessControl
 using LoggedDicts
 
 # Database
-sessions = LoggedDict("sessions", "sessions.log"; logging = false)
+sessions = LoggedDict("sessions", "sessions.log", true)
 
 # Handler
 function home!(req, res)

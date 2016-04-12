@@ -1,15 +1,16 @@
 #=
-    Contents: Functions for session management.
+    Contents: Create, read, update and delete functions for server-side sessions.
 =#
 
+session_id = create_session(con, res, "id")    # Init "id" => session_id on the database and set the "id" cookie to session_id
+session_id = read_sessionid(req, "id")         # Read the session_id from the "id" cookie
+get(con, keys...)                              # Read the value located at the path defined by keys...
+set!(con, keys..., value)                      # Set the value located at the path defined by keys...
+delete_session!(con, session_id, res, "id")    # Delete session from database and set the response's "id" cookie to an invalid state
 
-#=
-  Default session config
-    - securecookies::Bool   If true, use secure cookies instead of plain-text cookies
-    - max_n_sessions::Int   Max number of simultaneous sessions per user
-    - timeout::Int          Number of seconds between requests that results in a session timeout
-=#
-session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" => 600)
+
+################################################################################
+### LoggedDict as database
 
 
 function create_session()
