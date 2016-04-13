@@ -76,8 +76,8 @@ AccessControl.update_config!(acdata, session = session_config, login = login_con
 
 # Add users to acdata.
 # INSECURE!!! Because usernames and passwords are visible in plain text. See Admin Access for the secure way to do this
-create_user!(acdata, "Alice", "pwd_alice")
-create_user!(acdata, "Bob",   "pwd_bob")
+AccessControl.create_user!(acdata, "Alice", "pwd_alice")
+AccessControl.create_user!(acdata, "Bob",   "pwd_bob")
 
 # Handlers
 function home!(req, res)

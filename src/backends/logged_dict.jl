@@ -9,12 +9,12 @@
 using LoggedDicts
 
 
-function create_user!(username::AbstractString, password::AbstractString, roles = Set{AbstractString}(), session_ids = Set{AbstractString}())
+function create_user!(username::AbstractString, password::AbstractString, roles = Set{AbstractString}())
     acdata = config[:acdata]
     set!(acdata,  username, Dict{Symbol, Any}())    # username => Dict{Symbol, Any}
     set_password!(acdata, username, password)
     set!(acdata, username, :roles, roles)
-    set!(acdata, username, :session_ids, session_ids)
+    set!(acdata, username, :session_ids, Set{AbstractString}())
 end
 
 
@@ -23,6 +23,16 @@ function delete_user!(username::AbstractString)
     if haskey(acdata, username)
 	delete!(acdata, username)
     end
+end
+
+
+function add_sessionid_to_user!(acdata::LoggedDict, username::AbstractString, session_id::AbstractString)
+    push!(acdata, username, :session_ids, session_id)
+end
+
+
+function remove_sessionid_from_user!(acdata::LoggedDict, username::AbstractString, session_id::AbstractString)
+    pop!(acdata, username, :session_ids, session_id)
 end
 
 
@@ -51,6 +61,32 @@ function get_salt_hashedpwd(username::AbstractString)
 	hashed_pwd = sp.hashed_password
     end
     salt, hashed_pwd
+end
+
+
+function add_role!(username::AbstractString, role::AbstractString)
+    add_roles!(username, role)
+end
+
+
+function add_roles!(username::AbstractString, roles...)
+    acdata = config[:acdata]
+    for role in roles
+	push!(s, acdata, username, :roles, role)
+    end
+end
+
+
+function remove_role!(username::AbstractString, role::AbstractString)
+    remove_roles!(username, role)
+end
+
+
+function remove_roles!(username::AbstractString, roles...)
+    acdata = config[:acdata]
+    for role in roles
+	pop!(acdata, username, :roles, role)
+    end
 end
 
 

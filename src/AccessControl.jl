@@ -12,7 +12,6 @@ export
     login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers
     is_logged_in, is_not_logged_in                                              # utils
 
-
 ### Config - to be updated by the app's call to AccessControl.configure()
 config                  = Dict{Symbol, Any}()
 config[:admin_password] = nothing
@@ -61,16 +60,22 @@ acpaths["/process_pwdreset"] = process_pwdreset!    # Handle credentials supplie
 
 
 # User create/delete
-function create_user! end
-function delete_user! end
+function create_user!  end
+function delete_user!  end
+
+# Add/remove session to/from user record in acdata
+function add_sessionid_to_user! end
+function remove_sessionid_from_user! end
 
 # Password management
 function set_password! end
 function get_salt_hashedpwd end
 
 # Role management
-#function add_roles! end
-#function remove_roles! end
+function add_role! end
+function add_roles! end
+function remove_role! end
+function remove_roles! end
 
 
 end # module
