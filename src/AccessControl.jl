@@ -1,9 +1,4 @@
 module AccessControl
-#=
-TODO:
-- login!: max_attempts, lockout
-- pwdreset!: max_attempts, lockout (use login settings)
-=#
 
 using HttpServer
 using MbedTLS

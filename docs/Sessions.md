@@ -31,14 +31,13 @@ It is often argued that client-side cookies scale better than server-side cookie
 
 ## HTTPS
 
-__NOTE__: In these docs we run all examples under HTTPS rather than HTTP. This security measure prevents attackers from reading our requests and responses directly off the wire. To do so we call `generate_key_cert` prior to running the server.
+__NOTE__: In these docs we run all examples under HTTPS rather than HTTP. This security measure prevents attackers from reading our requests and responses directly off the wire.
 
 ## The Basic API
 Both client-side and server-side sessions have the following `session_config` in common, which can be modified as desired:
 ```julia
 #=
   Config
-    - securecookies::Bool   If true, use secure cookies instead of plain-text cookies
     - max_n_sessions::Int   Max number of simultaneous sessions per user
     - timeout::Int          Number of seconds between requests that results in a session timeout
 =#
@@ -181,9 +180,3 @@ function home!(req, res)
     free!(cp, con)                                             # Release the connection back to the connection pool
 end
 ```
-
-## Todo
-1. Implement support for server-side sessions with other databases.
-2. Rate limiting. Limit the number of requests that a user can make per minute. This is aimed at preventing denial-of-service attacks.
-    - rate_limit:       Max number of requests per minute for the given session. Defaults to 100.
-    - lockout_duration: Duration (in seconds) of lockout after rate_limit has been reached. Defaults to 1800 (30 mins).
