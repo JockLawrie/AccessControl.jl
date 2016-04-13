@@ -16,7 +16,7 @@ export
 config                  = Dict{Symbol, Any}()
 config[:admin_password] = nothing
 config[:acdata]         = nothing                                   # No default data store for access control data
-config[:session]        = Dict(:datastore => Cookie,                # One of: Cookie, ld::LoggedDict, cp::ConnectionPool
+config[:session]        = Dict(:datastore => :cookie,               # One of: :cookie::Symbol, ld::LoggedDict, cp::ConnectionPool
                                :cookiename => "id", :id_length => 32, :max_n_sessions => 1, :timeout => 600)
 config[:login]          = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Username and/or password incorrect.")
 config[:logout]         = Dict(:redirect => "/")
@@ -38,6 +38,10 @@ include("sessions/serverside_sessions/serverside_loggeddict.jl")
 include("sessions/serverside_sessions/serverside_redis.jl")
 # Authentication
 include("default_forms.jl")
+include("backends/common.jl")
+include("authentication/authentication_utils.jl")
+include("passwordhash/password_hash.jl")
+include("passwordhash/pbkdf2.jl")
 
 
 ### Start-up scripts
@@ -66,6 +70,7 @@ function delete_user!  end
 # Add/remove session to/from user record in acdata
 function add_sessionid_to_user! end
 function remove_sessionid_from_user! end
+function session_is_valid end
 
 # Password management
 function set_password! end

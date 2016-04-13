@@ -9,8 +9,7 @@
 using LoggedDicts
 
 
-function create_user!(username::AbstractString, password::AbstractString, roles = Set{AbstractString}())
-    acdata = config[:acdata]
+function create_user!(acdata::LoggedDict, username::AbstractString, password::AbstractString, roles = Set{AbstractString}())
     set!(acdata,  username, Dict{Symbol, Any}())    # username => Dict{Symbol, Any}
     set_password!(acdata, username, password)
     set!(acdata, username, :roles, roles)
@@ -18,8 +17,7 @@ function create_user!(username::AbstractString, password::AbstractString, roles 
 end
 
 
-function delete_user!(username::AbstractString)
-    acdata = config[:acdata]
+function delete_user!(acdata::LoggedDict, username::AbstractString)
     if haskey(acdata, username)
 	delete!(acdata, username)
     end
@@ -36,6 +34,11 @@ function remove_sessionid_from_user!(acdata::LoggedDict, username::AbstractStrin
 end
 
 
+function get_n_sessions(acdata::LoggedDict, username::AbstractString)
+    length(get(acdata, username, :session_ids))
+end
+
+
 "Set password for username."
 function set_password!(acdata::LoggedDict, username::AbstractString, password::AbstractString)
     if haskey(acdata, username)
@@ -45,14 +48,12 @@ function set_password!(acdata::LoggedDict, username::AbstractString, password::A
     end
 end
 
-set_password!(username::AbstractString, password::AbstractString) = set_password!(config[:acdata], username, password)
-
 
 """
 Fetches salt and hashed_password for username from acdata.
 If username has no salt or hashed password, returns empty salt and hashed_password (UInt8[], UInt8[]).
 """
-function get_salt_hashedpwd(username::AbstractString)
+function get_salt_hashedpwd(acdata::LoggedDict, username::AbstractString)
     salt, hashed_pwd = UInt8[], UInt8[]
     acdata = config[:acdata]
     if haskey(acdata, username, :password)
@@ -64,26 +65,14 @@ function get_salt_hashedpwd(username::AbstractString)
 end
 
 
-function add_role!(username::AbstractString, role::AbstractString)
-    add_roles!(username, role)
-end
-
-
-function add_roles!(username::AbstractString, roles...)
-    acdata = config[:acdata]
+function add_roles!(acdata::LoggedDict, username::AbstractString, roles...)
     for role in roles
 	push!(s, acdata, username, :roles, role)
     end
 end
 
 
-function remove_role!(username::AbstractString, role::AbstractString)
-    remove_roles!(username, role)
-end
-
-
-function remove_roles!(username::AbstractString, roles...)
-    acdata = config[:acdata]
+function remove_roles!(acdata::LoggedDict, username::AbstractString, roles...)
     for role in roles
 	pop!(acdata, username, :roles, role)
     end

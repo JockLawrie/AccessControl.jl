@@ -11,7 +11,7 @@ INPUT:
           For example, an intra-process Dict or a connection to a database from a connection pool.
 """
 function login_credentials_are_valid(username::AbstractString, password::AbstractString, acdata)
-    salt, hashed_pwd = get_salt_hashedpwd(username, acdata)     # Depends on datastore (acdata)
+    salt, hashed_pwd = get_salt_hashedpwd(acdata, username)
     password_is_valid(password, salt, hashed_pwd)
 end
 
@@ -38,9 +38,17 @@ end
 
 
 "Returns true if req has a valid 'sessionid' cookie."
-function is_logged_in(req::Request, cookiename::AbstractString)
-    session_id = read_sessionid(req, cookiename)
-    haskey(acdata, "sessions", session_id)
+function is_logged_in(req::Request)
+    result     = false
+    cookiename = config[:session][:cookiename]
+    sessions   = config[:session][:datastore]
+    if sessions == :cookie
+	result = read_session(req, cookiename) != ""
+    else
+	session_id = read_sessionid(req, cookiename)           # Read session_id from cookie
+	result     = session_is_valid(sessions, session_id)    # Check session_id against server-side session data
+    end
+    result
 end
 
 is_not_logged_in(req) = !is_logged_in(req)

@@ -10,16 +10,29 @@ end
 read_sessionid(req::Request) = read_sessionid(req, config[:session][:cookiename])
 
 
-"Add session_id to user record in acdata."
-function add_sessionid_to_user!(username::AbstractString, session_id::AbstractString)
-    add_sessionid_to_user!(config[:acdata], username, session_id)
-end 
+"Returns: true if session_id exists in the server-side data store."
+function session_is_valid(session_id::AbstractString)
+    session_is_valid(config[:session], session_id)
+end
 
 
-"Remove session_id from user record in acdata."
-function remove_sessionid_from_user!(username::AbstractString, session_id::AbstractString)
-    remove_sessionid_from_user!(config[:acdata], username, session_id)
-end 
+"""
+Init session_id => session on the database and set the specified cookie to session_id.
+Return: session_id
+"""
+function create_session(username::AbstractString, res::Response)
+    tp = typeof(config[:session][:datastore])
+    cookiename = config[:session][:cookiename]
+    create_session(tp, username, res, cookiename)
+end
+
+
+"Delete session from database and set the specified cookie to an invalid state."
+function delete_session!(session_id::AbstractString, res::Response)
+    tp = typeof(config[:session][:datastore])
+    cookiename = config[:session][:cookiename]
+    delete_session(tp, username, res, cookiename)
+end
 
 
 # EOF

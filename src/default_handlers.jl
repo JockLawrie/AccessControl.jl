@@ -16,22 +16,20 @@ function login!(req, res)
         username, password = extract_username_password(req)
 	if login_credentials_are_valid(username, password, acdata)    # Successful login: Redirect
 	    redirect!(res, success_redirect)
-	    if config[:session][:datastore] == Cookie
-		session              = create_session()
-		session["username"]  = username
+	    if config[:session][:datastore] == :cookie
+		session              = create_session(username)
 		session["lastvisit"] = string(now())
 		write_session!(res, cookiename, session)
+	    elseif typeof(config[:session][:datastore]) == LoggedDict
+		session_id = create_session(sessions, username, res, cookiename)
+		set!(sessions, session_id, "lastvisit", string(now()))
 	    else
 
-		create_session(sessions, res, cookiename)
-		set!(sessions, "username", username)
-		set!(sessions, "lastvisit", string(now()))
 
-
-                con = get_connection!(config[:session][:datastore])
-		create_session(con, res, cookiename)
-		set!(sessions, "username", username)
-		set!(sessions, "lastvisit", string(now()))
+                con        = get_connection!(config[:session][:datastore])
+		session_id = create_session(con, username, res, cookiename)
+		set(con, "session:$session_id:lastvisit", string(now()))
+		free!(cp, con)
 	    end
 	else                                                          # Unsuccessful login: Return fail message
 	    msg = config[:login][:fail_msg]

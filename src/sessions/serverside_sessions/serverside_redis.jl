@@ -19,6 +19,7 @@ Init session_id => session on the database and set the specified cookie to sessi
 Return: session_id
 """
 function create_session(con::RedisConnection, username::AbstractString, res::Response, cookiename::AbstractString)
+    get_n_sessions(username) >= config[:session][:max_n_sessions] && return
     session_id = generate_session_id()
     sadd(con, "sessions", session_id)                     # Add session_id to the "sessions" Set
     set(con, "session:$session_id:username", username)    # Add username to the session data
@@ -26,6 +27,7 @@ function create_session(con::RedisConnection, username::AbstractString, res::Res
     if haskey(config[:session], :timeout)                 # Add "lastvisit" to the "session:keypaths" Set
 	sadd(con, "session:keypaths", "lastvisit")
     end
+    add_sessionid_to_user!(username, session_id)
     write_to_cookie!(res, cookiename, session_id)
     session_id
 end
@@ -33,6 +35,8 @@ end
 
 "Delete session from database and set the specified cookie to an invalid state."
 function delete_session!(con::RedisConnection, session_id::AbstractString, res::Response, cookiename::AbstractString)
+    username = get(con, "session:$session_id:username")
+    remove_sessionid_from_user!(username, session_id)
     delete_session_from_database!(con, session_id)
     delete_session!(res, cookiename)
 end
@@ -49,11 +53,18 @@ function delete_session_from_database!(con::RedisConnection, session_id::Abstrac
     srem(con, "sessions", session_id)
 end
 
+
 function delete_all_sessions_from_database!(con::RedisConnection)
     session_ids = smembers(con, "sessions")
     for session_id in session_ids
 	delete_session_from_database!(con, session_id)
     end
+end
+
+
+"Returns: true if session_id exists in the server-side data store."
+function session_is_valid(con::RedisConnection, session_id::AbstractString)
+    sismember(con, "sessions", session_id)
 end
 
 
