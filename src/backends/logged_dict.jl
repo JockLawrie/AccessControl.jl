@@ -9,19 +9,17 @@
 using LoggedDicts
 
 
-function create_user!(username::AbstractString, password::AbstractString, roles...)
-    acdata = cfg["acdata"]
-    set!(acdata,  username, Dict{AbstractString, AbstractString}())
-    set_password!(username, password)
-    set!(acdata, username, "roles", Set{AbstractString}())
-    for role in roles
-	push!(acdata, username, "roles", role)
-    end
+function create_user!(username::AbstractString, password::AbstractString, roles = Set{AbstractString}(), session_ids = Set{AbstractString}())
+    acdata = config[:acdata]
+    set!(acdata,  username, Dict{Symbol, Any}())    # username => Dict{Symbol, Any}
+    set_password!(acdata, username, password)
+    set!(acdata, username, :roles, roles)
+    set!(acdata, username, :session_ids, session_ids)
 end
 
 
 function delete_user!(username::AbstractString)
-    acdata = cfg["acdata"]
+    acdata = config[:acdata]
     if haskey(acdata, username)
 	delete!(acdata, username)
     end
@@ -29,14 +27,15 @@ end
 
 
 "Set password for username."
-function set_password!(username::AbstractString, password::AbstractString)
-    acdata = cfg["acdata"]
-    if haskey(acdata, username, "password")
-	set!(acdata, username, "password", StoredPassword(password))
+function set_password!(acdata::LoggedDict, username::AbstractString, password::AbstractString)
+    if haskey(acdata, username)
+	set!(acdata, username, :password, StoredPassword(password))
     else
 	LoggedDicts.log(acdata, "ERROR. Cannot set_password because username $username does not exist.")
     end
 end
+
+set_password!(username::AbstractString, password::AbstractString) = set_password!(config[:acdata], username, password)
 
 
 """
@@ -45,9 +44,9 @@ If username has no salt or hashed password, returns empty salt and hashed_passwo
 """
 function get_salt_hashedpwd(username::AbstractString)
     salt, hashed_pwd = UInt8[], UInt8[]
-    acdata = cfg["acdata"]
-    if haskey(acdata, username, "password")
-	sp         = get(acdata, username, "password")
+    acdata = config[:acdata]
+    if haskey(acdata, username, :password)
+	sp         = get(acdata, username, :password)
 	salt       = sp.salt
 	hashed_pwd = sp.hashed_password
     end
