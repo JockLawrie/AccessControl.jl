@@ -9,15 +9,32 @@ Login request must be a POST request.
 If login is successful, redirect to success_redirect, else return bad_request.
 """
 function login!(req, res)
-    acdata = cfg["acdata"]
-    success_redirect = cfg["login_cfg"]["success_redirect"]
+    acdata           = config[:acdata]
+    success_redirect = config[:login][:success_redirect]
+    cookiename       = config[:session][:cookiename]
     if req.method == "POST"                                           # Require that login requests are POST requests
         username, password = extract_username_password(req)
 	if login_credentials_are_valid(username, password, acdata)    # Successful login: Redirect
 	    redirect!(res, success_redirect)
-	    create_secure_session_cookie(username, res, "sessionid")
-	else                                                          # Unsuccessful login: Return 400: Bad Request
-	    msg = cfg["login_cfg"]["fail_msg"]
+	    if config[:session][:datastore] == Cookie
+		session              = create_session()
+		session["username"]  = username
+		session["lastvisit"] = string(now())
+		write_session!(res, cookiename, session)
+	    else
+
+		create_session(sessions, res, cookiename)
+		set!(sessions, "username", username)
+		set!(sessions, "lastvisit", string(now()))
+
+
+                con = get_connection!(config[:session][:datastore])
+		create_session(con, res, cookiename)
+		set!(sessions, "username", username)
+		set!(sessions, "lastvisit", string(now()))
+	    end
+	else                                                          # Unsuccessful login: Return fail message
+	    msg = config[:login][:fail_msg]
 	    res.data = "<script><alert($(msg));/script>"
 	end
     else
@@ -28,10 +45,8 @@ end
 
 "User has clicked the logout button/link: Redirect to redirect_path."
 function logout!(req, res)
-    redirect_path = cfg["logout_cfg"]["redirect"]
-    username = get_session_cookie_data(req, "sessionid")
-    is_not_logged_in(username) && (notfound!(res); return)
-    redirect!(res, redirect_path)
+    is_not_logged_in(req) && (notfound!(res); return)
+    redirect!(res, config[:logout][:redirect])
     invalidate_cookie!(res, "sessionid")
 end
 
@@ -63,8 +78,7 @@ end
 
 "Page displayed when user clicks Reset Password link."
 function reset_password!(req, res)
-    username = get_session_cookie_data(req, "sessionid")
-    is_not_logged_in(username) && (notfound!(res); return)
+    is_not_logged_in(req) && (notfound!(res); return)
     res.data = "<h2>Password reset.</h2>
                 <br>
 		<form action='user_reset_password' method='post'>

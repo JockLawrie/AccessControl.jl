@@ -38,18 +38,12 @@ end
 
 
 "Returns true if req has a valid 'sessionid' cookie."
-function is_logged_in(req::Request)
-    username = get_session_cookie_data(req, "sessionid")    # Returns "" if sessionid cookie doesn't exist
-    is_logged_in(username)
+function is_logged_in(req::Request, cookiename::AbstractString)
+    session_id = read_sessionid(req, cookiename)
+    haskey(acdata, "sessions", session_id)
 end
 
-
-function is_logged_in(username::AbstractString)
-    username == "" ? false : true
-end
-
-
-is_not_logged_in(uname_or_req) = !is_logged_in(uname_or_req)
+is_not_logged_in(req) = !is_logged_in(req)
 
 
 # EOF

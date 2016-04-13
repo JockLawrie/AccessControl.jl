@@ -9,9 +9,9 @@ using LoggedDicts
 Init session_id => session on the database and set the specified cookie to session_id.
 Return: session_id
 """
-function create_session(ld::LoggedDict, res::Response, cookiename::AbstractString)
+function create_session(ld::LoggedDict, username::AbstractString, res::Response, cookiename::AbstractString)
     session_id = generate_session_id()
-    set!(ld, session_id, Dict())
+    set!(ld, session_id, Dict{Symbol, Any}(:username => username))
     write_to_cookie!(res, cookiename, session_id)
     session_id
 end

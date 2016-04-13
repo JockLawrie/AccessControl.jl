@@ -47,7 +47,7 @@ session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" 
 Client-side sessions are `Dict`s stored in a cookie. They have the following create, read and delete functions. Updating sessions occurs on the server using standard Julia syntax for modifying `Dict`s.
 ```julia
 ### Client-side sessions
-session = create_session()            # Return Dict("id" => session_id)
+session = create_session(username)    # Return Dict("id" => session_id)
 session = read_session(req, "id")     # Read the session from the request's "id" cookie
 write_session!(res, "id", session)    # Write the session object to the response's "id" cookie
 delete_session!(res, "id")            # Set the response's "id" cookie to an invalid state
@@ -56,11 +56,11 @@ delete_session!(res, "id")            # Set the response's "id" cookie to an inv
 Server-side sessions store a session ID in a cookie AND a session object on the database. The implementation of the session object depends on the database used. This package provides the following CRUD (create/read/update/delete) functions. Currently `LoggedDict`s and Redis are the only supported databases.
 ```julia
 ### Server-side sessions
-session_id = create_session(con, res, "id")    # Init session_id => session on the database and set the "id" cookie to session_id
-session_id = read_sessionid(req, "id")         # Read the session_id from the "id" cookie
-get(con, keys...)                              # Read the value located at the path defined by keys...
-set!(con, keys..., value)                      # Set the value located at the path defined by keys...
-delete_session!(con, session_id, res, "id")    # Delete session from database and set the response's "id" cookie to an invalid state
+session_id = create_session(con, username, res, "id")    # Init session_id => session on the database and set the "id" cookie to session_id
+session_id = read_sessionid(req, "id")                   # Read the session_id from the "id" cookie
+get(con, keys...)                                        # Read the value located at the path defined by keys...
+set!(con, keys..., value)                                # Set the value located at the path defined by keys...
+delete_session!(con, session_id, res, "id")              # Delete session from database and set the response's "id" cookie to an invalid state
 ```
 
 ## Example 1: Display last visit
@@ -107,7 +107,7 @@ using AccessControl
 function home!(req, res)
     session = read_session(req, "id")
     if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session  = create_session()
+        session  = create_session("")
         res.data = "This is your first visit."
     else
         last_visit = session["lastvisit"]
@@ -132,7 +132,7 @@ sessions = LoggedDict("sessions", "sessions.log", true)    # Logging turned off
 function home!(req, res)
     session_id = read_sessionid(req, "id")
     if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session_id = create_session(sessions, res, "id")
+        session_id = create_session(sessions, "", res, "id")
         res.data   = "This is your first visit."
     else
         last_visit = get(sessions, session_id, "lastvisit")
@@ -161,19 +161,16 @@ using ConnectionPools
 
 # Database
 cp  = ConnectionPool(RedisConnection(), 0, 10, 10, 500, 10)    # Pool of connections to the Redis database
-con = get_connection!(cp)
-sadd(con, "session:keypaths", "lastvisit")
-free!(cp, con)
 
 # Handler
 function home!(req, res)
     con        = get_connection!(cp)                           # Get a connection to Redis database from the connection pool
     session_id = read_sessionid(req, "id")
     if session_id == ""                                        # "id" cookie does not exist...session hasn't started...start a new session.
-        session_id = create_session(con, res, "id")
+        session_id = create_session(con, "", res, "id")
         res.data   = "This is your first visit."
     else
-	last_visit = get(con, "session:$session_id", "lastvisit")
+        last_visit = get(con, "session:$session_id", "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
     end
     set!(con, "session:$session_id", "lastvisit", string(now()))

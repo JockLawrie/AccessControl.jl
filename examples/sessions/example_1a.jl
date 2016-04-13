@@ -8,13 +8,13 @@ using AccessControl
 function home!(req, res)
     session = read_session(req, "id")
     if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session  = create_session()
+        session  = create_session("")            # username = ""
         res.data = "This is your first visit."
     else
         last_visit = session["lastvisit"]
         res.data   = "Welcome back. Your last visit was at $last_visit."
+	session["lastvisit"] = string(now())
     end
-    session["lastvisit"] = string(now())
     write_session!(res, "id", session)
 end
 

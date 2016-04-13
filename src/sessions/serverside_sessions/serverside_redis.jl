@@ -18,9 +18,14 @@ using Redis
 Init session_id => session on the database and set the specified cookie to session_id.
 Return: session_id
 """
-function create_session(con::RedisConnection, res::Response, cookiename::AbstractString)
+function create_session(con::RedisConnection, username::AbstractString, res::Response, cookiename::AbstractString)
     session_id = generate_session_id()
-    sadd(con, "sessions", session_id)        # Add session_id to the "sessions" Set.
+    sadd(con, "sessions", session_id)                     # Add session_id to the "sessions" Set
+    set(con, "session:$session_id:username", username)    # Add username to the session data
+    sadd(con, "session:keypaths", "username")             # Add "username"  to the "session:keypaths" Set
+    if haskey(config[:session], :timeout)                 # Add "lastvisit" to the "session:keypaths" Set
+	sadd(con, "session:keypaths", "lastvisit")
+    end
     write_to_cookie!(res, cookiename, session_id)
     session_id
 end
