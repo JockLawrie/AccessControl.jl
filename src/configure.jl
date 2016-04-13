@@ -19,12 +19,25 @@ configure(acdata, login_config, logout_config) = configure(acdata, login_config,
 
 
 "Overwrite the defaults of cfg[key] with dct."
-function update_config!(key::AbstractString, dct::Dict)
+function update_config!(key::Symbol, dct::Dict)
     d = cfg[key]
     for k in keys(dct)
 	d[k] = dct[key]
     end
+    if key == :securecookie
+	update_securecookie_config!(k2)
+    end
 end
+
+
+"Update config and trigger update of downstream values."
+function update_config!(k1::Symbol, k2::Symbol, val)
+    config[k1][k2] = val
+    if k1 == :securecookie
+	update_securecookie_config!(k2)
+    end
+end
+
 
 
 function set_acdata_getters_setters(acdata)
