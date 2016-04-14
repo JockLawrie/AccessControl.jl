@@ -3,10 +3,11 @@
 1. [Sessions](Sessions.md)
 2. [Authentication](Authentication.md)
 3. Authorization
-4. Admin Access (Read and write access control data)
+4. Admin Access (read and write access control data)
     - Via GUI
     - Via command line
 5. Deploying AccessControl as a stand-alone service
+
 - [Appendix A: Secure Cookies](SecureCookies.md)
 - [Appendix B: Password Hashing](PasswordHash.md)
 
