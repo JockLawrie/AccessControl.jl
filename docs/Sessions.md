@@ -120,7 +120,17 @@ end
 ```
 
 ### Examples 1b and 1c: server-side sessions
-Here the `sessions` object serves as our database. It is a `Dict` with key-value pairs: `session_id => session_object`, where `session_object` is also a `Dict`.
+__A note on storing session data on the server__
+
+Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in a session. If the session is stored in a `LoggedDict` we can use the syntax `set!(ld, k1, k2, k3, v)`. This uses the concept of a _key path_, which is the ordered sequence of keys `k1, k2, k3`.
+
+What if we want to store this session data in Redis, which can't nest data structures like this? We use the key path idea again: we flatten the sequence of keys and store `k1:k2:k3 => v`. Thus the key path concept allows a common API for different data stores.
+
+To store sessions in Redis we use the following schema:
+
+- "sessions" => Set(session_id1, ...),      set of current valid session_ids.
+- "session:$(session_id):$(keypath)" => v,  key-value pairs for session_id.
+- "session:keypaths" => Set(keypath1, ...), exploits the fact that session fields come from a common app-specific set.
 ```julia
 using HttpServer
 using AccessControl
@@ -151,15 +161,3 @@ function home!(req, res)
     end
 end
 ```
-
-__Note: Storing session data on the server__:
-
-Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in a session. If the session is stored in a `LoggedDict` we can use the syntax `set!(ld, k1, k2, k3, v)`. This uses the concept of a _key path_, which is the ordered sequence of keys `k1, k2, k3`.
-
-What if we want to store this session data in Redis, which can't nest data structures like this? We use the key path idea again: we flatten the sequence of keys and store `k1:k2:k3 => v`. Thus the key path concept allows a common API for different data stores.
-
-To store sessions in Redis we use the following schema:
-
-- "sessions" => Set(session_id1, ...),      set of current valid session_ids.
-- "session:$(session_id):$(keypath)" => v,  key-value pairs for session_id.
-- "session:keypaths" => Set(keypath1, ...), exploits the fact that session fields come from a common app-specific set.
