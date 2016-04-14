@@ -9,7 +9,7 @@
 using LoggedDicts
 
 
-function create_user!(acdata::LoggedDict, username::AbstractString, password::AbstractString, roles = Set{AbstractString}())
+function create_user!(acdata::LoggedDict, username::AbstractString, password::AbstractString, roles::Set{AbstractString})
     set!(acdata,  username, Dict{Symbol, Any}())    # username => Dict{Symbol, Any}
     set_password!(acdata, username, password)
     set!(acdata, username, :roles, roles)
