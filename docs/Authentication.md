@@ -90,7 +90,7 @@ end
 function members_only!(req, res)
     is_not_logged_in(req) && (notfound!(res); return)        # Check whether user has been authenticated
     session_id = read_sessionid(req)
-    username   = get(sessions, session_id, "username")
+    username   = session_get(session_id, "username")
     username   = escapestring(username, :html_text)
     res.data   = "Welcome $(username)! This page displays information for members only.
                   <br>
