@@ -12,8 +12,8 @@ Return: session_id
 function session_create!(sessions::LoggedDict, username::AbstractString, res::Response, cookiename::AbstractString)
     get_n_sessions(username) >= config[:session][:max_n_sessions] && return
     session_id = generate_session_id()
-    set!(sessions, session_id, Dict{Symbol, Any}(:username => username))
-    set!(sessions, session_id, :lastvisit, string(now()))
+    set!(sessions, session_id, Dict{AbstractString, Any}("username" => username))
+    haskey(config[:session], :timeout) && set!(sessions, session_id, "lastvisit", string(now()))
     add_sessionid_to_user!(username, session_id)
     write_to_cookie!(res, cookiename, session_id)
     session_id

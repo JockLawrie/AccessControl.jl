@@ -3,6 +3,7 @@ module AccessControl
 using HttpServer
 using MbedTLS
 using JSON
+using ConnectionPools
 
 import Redis.get, LoggedDicts.set!
 

@@ -4,18 +4,10 @@
 using HttpServer
 using AccessControl
 
-# Example 1b: LoggedDict as data store for sessions
+# LoggedDict as data store for sessions
 using LoggedDicts
 sessions = LoggedDict("sessions", "sessions.log", true)    # Logging turned off
 AccessControl.update_config!(session = Dict(:datastore => sessions))
-
-#=
-# Example 1c: Redis as data store for sessions
-using Redis
-using ConnectionPools
-cp  = ConnectionPool(RedisConnection(), 10, 10, 500, 10)    # Pool of connections to the Redis database
-AccessControl.update_config!(session = Dict(:datastore => cp))
-=#
 
 # Handler
 function home!(req, res)
@@ -24,9 +16,9 @@ function home!(req, res)
         session_id = session_create!(res, "")
         res.data   = "This is your first visit."
     else
-        last_visit = session_get(session_id, :lastvisit)
+        last_visit = session_get(session_id, "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
-        session_set!(session_id, :lastvisit, string(now()))
+        session_set!(session_id, "lastvisit", string(now()))
     end
 end
 

@@ -3,25 +3,24 @@
 =#
 using HttpServer
 using AccessControl
+
+# Redis as data store for sessions
 using Redis
 using ConnectionPools
-
-# Database
-cp  = ConnectionPool(RedisConnection(), 0, 10, 10, 500, 10)    # Pool of connections to the Redis database
+cp  = ConnectionPool(RedisConnection(), 10, 10, 500, 10)    # Pool of connections to the Redis database
+AccessControl.update_config!(session = Dict(:datastore => cp))
 
 # Handler
 function home!(req, res)
-    con        = get_connection!(cp)                           # Get a connection to Redis database from the connection pool
-    session_id = read_sessionid(req, "id")
-    if session_id == ""                                        # "id" cookie does not exist...session hasn't started...start a new session.
-        session_id = create_session(con, "", res, "id")
+    session_id = read_sessionid(req)
+    if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
+        session_id = session_create!(res, "")
         res.data   = "This is your first visit."
     else
-	last_visit = get(con, "session:$session_id", "lastvisit")
+        last_visit = session_get(session_id, "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
+        session_set!(session_id, "lastvisit", string(now()))
     end
-    set!(con, "session:$session_id", "lastvisit", string(now()))
-    free!(cp, con)                                             # Release the connection back to the connection pool
 end
 
 # App

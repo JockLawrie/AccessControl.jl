@@ -18,7 +18,7 @@ using Redis
 Init session_id => session on the database and set the specified cookie to session_id.
 Return: session_id
 """
-function create_session(con::RedisConnection, username::AbstractString, res::Response, cookiename::AbstractString)
+function session_create!(con::RedisConnection, username::AbstractString, res::Response, cookiename::AbstractString)
     get_n_sessions(username) >= config[:session][:max_n_sessions] && return
     session_id = generate_session_id()
     sadd(con, "sessions", session_id)                     # Add session_id to the "sessions" Set
@@ -26,6 +26,7 @@ function create_session(con::RedisConnection, username::AbstractString, res::Res
     sadd(con, "session:keypaths", "username")             # Add "username"  to the "session:keypaths" Set
     if haskey(config[:session], :timeout)                 # Add "lastvisit" to the "session:keypaths" Set
 	sadd(con, "session:keypaths", "lastvisit")
+	set(con, "session:$session_id:lastvisit", string(now()))    # Add lastvisit to the session data
     end
     add_sessionid_to_user!(username, session_id)
     write_to_cookie!(res, cookiename, session_id)
@@ -34,11 +35,11 @@ end
 
 
 "Delete session from database and set the specified cookie to an invalid state."
-function delete_session!(con::RedisConnection, session_id::AbstractString, res::Response, cookiename::AbstractString)
+function session_delete!(con::RedisConnection, session_id::AbstractString, res::Response, cookiename::AbstractString)
     username = get(con, "session:$session_id:username")
     remove_sessionid_from_user!(username, session_id)
     delete_session_from_database!(con, session_id)
-    delete_session!(res, cookiename)
+    session_delete!(res, cookiename)
 end
 
 
@@ -96,15 +97,16 @@ function construct_keypath(has_value::Bool, keys_value...)
 end
 
 
-function get(con::RedisConnection, keys...)
+function session_get(con::RedisConnection, session_id, keys...)
     k = construct_keypath(false, keys...)
-    get(con, k)
+    get(con, "session:$session_id:$k")
 end
 
 
-function set!(con::RedisConnection, keys_value...)
+function session_set!(con::RedisConnection, session_id, keys_value...)
     k = construct_keypath(true, keys_value...)
-    set(con, k, keys_value[length(keys_value)])    # Set keypath => value
+    sadd(con, "session:keypaths", k)                                     # Add key path to the set of key paths
+    set(con, "session:$session_id:$k", keys_value[length(keys_value)])    # Set keypath => value
 end
 
 
