@@ -39,21 +39,12 @@ end
 
 function update_config_acdata!(acdata)
     config[:acdata] = acdata
-    include_acdata_backend_support(acdata)
-end
-
-
-################################################################################
-### Include functions for specific backend
-
-function include_acdata_backend_support(acdata::LoggedDict)
-    include("backends/logged_dict.jl")
-end
-
-
-"Called if typeof(acdata) is not yet supported."
-function include_acdata_backend_support(acdata)
-    error("Your access control data store has a type that AccessControl.jl doesn't yet support. Please file an issue at the AccessControl.jl github repo.")
+    tp = typeof(acdata)
+    if tp == LogggedDict
+	include("backends/logged_dict.jl")
+    else
+	error("Your access control data store has a type that AccessControl.jl doesn't yet support. Please file an issue at the AccessControl.jl github repo.")
+    end
 end
 
 

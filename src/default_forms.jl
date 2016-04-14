@@ -33,3 +33,21 @@ function logout_pwdreset_links()
          <li><a href='reset_password'>Reset Password</a></li>
      </ul>"
 end
+
+
+function pwdreset_form()
+    "<h2>Password reset.</h2>
+     <br>
+     <form action='user_reset_password' method='post'>
+         Current password:<br>
+         <input type='password' id='current_pwd' name='current_pwd'/>
+	 <br>
+	 New password:<br>
+	 <input type='password' id='new_pwd' name='new_pwd'/>
+	 <br>
+	 Retype new password:<br>
+	 <input type='password' id='new_pwd2' name='new_pwd2'/>
+	 <br>
+         <input type='submit' value='Reset Password'/>
+    </form>"
+end

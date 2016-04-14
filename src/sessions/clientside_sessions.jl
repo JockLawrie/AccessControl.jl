@@ -8,17 +8,21 @@ Returns a Dict with:
 - 'id'        => session_id, which is randomly generated using a cryptographically secure RNG.
 - 'username'  => username 
 """
-function create_session(username::AbstractString)
+function session_create!(username::AbstractString)
     result             = Dict{AbstractString, Any}()
     result["id"]       = generate_session_id()
     result["username"] = username
+    if haskey(config[:session], :timeout)
+	result["lastvisit"] = string(now())
+    end
     result
 end
 
 
 "Read the session from the specified cookie."
-function read_session(req::Request, cookiename::AbstractString)
+function session_read(req::Request)
     s = ""
+    cookiename = config[:session][:cookiename]
     if using_secure_cookies()
 	s = get_securecookie_data(req, cookiename)
     else
@@ -28,13 +32,15 @@ function read_session(req::Request, cookiename::AbstractString)
 end
 
 "Write the session object to the specified cookie."
-function write_session!(res::Response, cookiename::AbstractString, session::Dict)
+function session_write!(res::Response, session::Dict)
+    cookiename = config[:session][:cookiename]
     write_to_cookie!(res, cookiename, JSON.json(session))
 end
 
 
 "Set the specified cookie to an invalid state."
-function delete_session!(res::Response, cookiename::AbstractString)
+function session_delete!(res::Response)
+    cookiename = config[:session][:cookiename]
     invalidate_cookie!(res, cookiename)
 end
 

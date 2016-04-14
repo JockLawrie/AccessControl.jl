@@ -110,12 +110,13 @@ function home!(req, res)
     if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
         session  = session_create!("")
         res.data = "This is your first visit."
+        session_write!(res, session)
     else
         last_visit = session["lastvisit"]
         res.data   = "Welcome back. Your last visit was at $last_visit."
         session["lastvisit"] = string(now())
+        session_write!(res, session)
     end
-    write_session!(res, session)
 end
 ```
 

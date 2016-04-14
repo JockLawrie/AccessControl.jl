@@ -7,7 +7,7 @@ using JSON
 import Redis.get, LoggedDicts.set!
 
 export
-    create_session, read_session, write_session!, delete_session!,               # Client-side sessions
+    session_create!, session_read, session_write!, session_delete!,              # Client-side sessions
     read_sessionid, set!, get,                                                   # Server-side sessions
     login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers
     is_logged_in, is_not_logged_in                                              # utils
@@ -21,9 +21,9 @@ config[:session]        = Dict(:datastore => :cookie,               # One of: :c
 config[:login]          = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Username and/or password incorrect.")
 config[:logout]         = Dict(:redirect => "/")
 config[:pwdreset]       = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Password incorrect.")
-config[:securecookie]   = Dict(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
-                               :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
-                               :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
+config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
+                                            :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
+                                            :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
 
 ### Includes
 # Common
@@ -31,17 +31,17 @@ include("utils.jl")
 include("configure.jl")
 include("default_handlers.jl")
 # Sessions
-include("securecookies/secure_cookies.jl")
+include("sessions/secure_cookies.jl")
 include("sessions/clientside_sessions.jl")
 include("sessions/serverside_sessions/serverside_common.jl")
 include("sessions/serverside_sessions/serverside_loggeddict.jl")
 include("sessions/serverside_sessions/serverside_redis.jl")
 # Authentication
 include("default_forms.jl")
-include("backends/common.jl")
+include("backends/backends_common.jl")
 include("authentication/authentication_utils.jl")
-include("passwordhash/password_hash.jl")
-include("passwordhash/pbkdf2.jl")
+include("authentication/passwordhash/password_hash.jl")
+include("authentication/passwordhash/pbkdf2.jl")
 
 
 ### Start-up scripts
@@ -50,7 +50,7 @@ update_securecookie_config!(:key_length)
 update_securecookie_config!(:block_size)
 
 # Access control paths
-acpaths = Dict{AbstractString, AbstractString}()
+acpaths = Dict{AbstractString, Function}()
 acpaths["/login"]            = login!
 acpaths["/logout"]           = logout!              # Redirect user according to cfg
 acpaths["/reset_password"]   = reset_password!      # Display password reset form

@@ -54,7 +54,7 @@ User has submitted a new password.
 
 Lockout occurs if the supplied original password is wrong too many times (defined by cfg["pwdreset_cfg"]).
 """
-function user_reset_password!(req, res)
+function process_pwdreset!(req, res)
     acdata = cfg["acdata"]
     success_redirect = cfg["pwdreset"]["success_redirect"]
     username = get_session_cookie_data(req, "sessionid")
@@ -77,20 +77,7 @@ end
 "Page displayed when user clicks Reset Password link."
 function reset_password!(req, res)
     is_not_logged_in(req) && (notfound!(res); return)
-    res.data = "<h2>Password reset.</h2>
-                <br>
-		<form action='user_reset_password' method='post'>
-	            Current password:<br>
-	            <input type='password' id='current_pwd' name='current_pwd'/>
-	            <br>
-	            New password:<br>
-	            <input type='password' id='new_pwd' name='new_pwd'/>
-	            <br>
-	            Retype new password:<br>
-	            <input type='password' id='new_pwd2' name='new_pwd2'/>
-	            <br>
-                    <input type='submit' value='Reset Password'/>
-		</form>"
+    res.data = pwdreset_form()
 end
 
 function notfound!(res)
