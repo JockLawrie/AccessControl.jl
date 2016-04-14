@@ -7,10 +7,11 @@ using JSON
 import Redis.get, LoggedDicts.set!
 
 export
-    session_create!, session_read, session_write!, session_delete!,              # Client-side sessions
-    read_sessionid, set!, get,                                                   # Server-side sessions
-    login!, logout!, user_reset_password!, notfound!, badrequest!, redirect!,    # Default handlers
-    is_logged_in, is_not_logged_in                                              # utils
+    session_create!, session_delete!,                                         # Common session functions
+    session_read, session_write!,                                             # Client-side sessions
+    read_sessionid, session_get, session_set!,                                # Server-side sessions
+    login!, logout!, process_pwdreset!, notfound!, badrequest!, redirect!,    # Default handlers
+    is_logged_in, is_not_logged_in                                            # utils
 
 ### Config - to be updated by the app's call to AccessControl.configure()
 config                  = Dict{Symbol, Any}()

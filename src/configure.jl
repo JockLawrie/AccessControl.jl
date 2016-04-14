@@ -8,15 +8,15 @@ Updates the default config from that defined in AccessControl.jl to that defined
 
 NOTE: Only the keys specified in the args are updated, other keys will retain their default values.
 """
-function update_config!(acdata;
+function update_config!(acdata = nothing;
                         securecookie = Dict{Symbol, Any}(), session = Dict{Symbol, Any}(),
                         login = Dict{Symbol, Any}(), logout = Dict{Symbol, Any}(), pwdreset = Dict{Symbol, Any}())
     update_config_acdata!(acdata)
-    update_config!(:securecookie, securecookie_config)
-    update_config!(:session,      session_config)
-    update_config!(:login,        login_config)
-    update_config!(:logout,       logout_config)
-    update_config!(:pwdreset,     pwdreset_config)
+    update_config!(:securecookie, securecookie)
+    update_config!(:session,      session)
+    update_config!(:login,        login)
+    update_config!(:logout,       logout)
+    update_config!(:pwdreset,     pwdreset)
 end
 
 
@@ -38,12 +38,14 @@ end
 
 
 function update_config_acdata!(acdata)
-    config[:acdata] = acdata
-    tp = typeof(acdata)
-    if tp == LogggedDict
-	include("backends/logged_dict.jl")
-    else
-	error("Your access control data store has a type that AccessControl.jl doesn't yet support. Please file an issue at the AccessControl.jl github repo.")
+    if acdata != nothing
+	config[:acdata] = acdata
+	tp = typeof(acdata)
+	if tp == LoggedDict
+	    include("backends/logged_dict.jl")
+	else
+	    error("Your access control data store has a type that AccessControl.jl doesn't yet support. Please file an issue at the AccessControl.jl github repo.")
+	end
     end
 end
 

@@ -20,18 +20,26 @@ end
 Init session_id => session on the database and set the specified cookie to session_id.
 Return: session_id
 """
-function create_session(username::AbstractString, res::Response)
-    tp = typeof(config[:session][:datastore])
+function session_create!(res::Response, username::AbstractString)
     cookiename = config[:session][:cookiename]
-    create_session(tp, username, res, cookiename)
+    session_create!(config[:session][:datastore], username, res, cookiename)
 end
 
 
 "Delete session from database and set the specified cookie to an invalid state."
-function delete_session!(session_id::AbstractString, res::Response)
-    tp = typeof(config[:session][:datastore])
+function session_delete!(res::Response, session_id::AbstractString)
     cookiename = config[:session][:cookiename]
-    delete_session(tp, username, res, cookiename)
+    session_delete!(config[:session][:datastore], session_id, res, cookiename)
+end
+
+
+function session_get(session_id, keys...)
+    session_get(config[:session][:datastore], session_id, keys...)
+end
+
+
+function session_set!(session_id, keys...)
+    session_set!(config[:session][:datastore], session_id, keys...)
 end
 
 

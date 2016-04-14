@@ -14,7 +14,8 @@ end
 
 
 function add_sessionid_to_user!(username::AbstractString, session_id::AbstractString)
-    add_sessionid_to_user!(config[:acdata], username, session_id)
+    acdata = config[:acdata]
+    acdata != nothing && add_sessionid_to_user!(acdata, username, session_id)
 end
 
 
@@ -23,8 +24,9 @@ function remove_sessionid_from_user!(username::AbstractString, session_id::Abstr
 end
 
 
-function get_n_sessions(acdata::LoggedDict, username::AbstractString)
-    get_n_sessions(config[:acdata], username)
+function get_n_sessions(username::AbstractString)
+    acdata = config[:acdata]
+    acdata == nothing ? 0 : get_n_sessions(acdata, username)
 end
 
 
