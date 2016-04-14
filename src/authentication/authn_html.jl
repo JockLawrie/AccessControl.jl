@@ -38,7 +38,7 @@ end
 function pwdreset_form()
     "<h2>Password reset.</h2>
      <br>
-     <form action='user_reset_password' method='post'>
+     <form action='process_pwdreset' method='post'>
          Current password:<br>
          <input type='password' id='current_pwd' name='current_pwd'/>
 	 <br>
