@@ -64,7 +64,7 @@ session_delete!(res, session_id)               # Delete session from database an
 ```
 
 
-## Example 1: Display last visit
+## Example: Display last visit
 This example displays the timestamp of the requestor's last visit. Run it and visit `https://0.0.0.0:8000/home`. Reload the page (Ctrl-r) to see it update.
 
 We show 3 versions: client-side sessions, server-side sessions with a `LoggedDict` as the database, and server-side sessions with Redis as the database. The 3 versions have the following code in common:
@@ -99,7 +99,7 @@ key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
 run(server, port = 8000, ssl = (cert, key))
 ```
 
-### Example 1a: client-side sessions
+### Example: Client-side sessions
 ```julia
 using HttpServer
 using AccessControl
@@ -120,7 +120,7 @@ function home!(req, res)
 end
 ```
 
-### Examples 1b and 1c: server-side sessions
+### Example: Server-side sessions
 __A note on storing session data on the server__
 
 Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in a session. If the session is stored in a `LoggedDict` we can use the syntax `set!(ld, k1, k2, k3, v)`. This uses the concept of a _key path_, which is the ordered sequence of keys `k1, k2, k3`.

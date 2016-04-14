@@ -1,21 +1,25 @@
 #=
-    Contents: Example 1a: Display last visit with client-side sessions.
+    Contents: Example: Display last visit with Redis as database.
 =#
 using HttpServer
 using AccessControl
 
+# Redis as data store for sessions
+using Redis
+using ConnectionPools
+cp  = ConnectionPool(RedisConnection(), 10, 10, 500, 10)    # Pool of connections to the Redis database
+AccessControl.update_config!(session = Dict(:datastore => cp))
+
 # Handler
 function home!(req, res)
-    session = session_read(req)
-    if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session  = session_create!("")           # username = ""
-        res.data = "This is your first visit."
-        session_write!(res, session)
+    session_id = read_sessionid(req)
+    if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
+        session_id = session_create!(res, "")
+        res.data   = "This is your first visit."
     else
-        last_visit = session["lastvisit"]
+        last_visit = session_get(session_id, "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
-	session["lastvisit"] = string(now())
-        session_write!(res, session)
+        session_set!(session_id, "lastvisit", string(now()))
     end
 end
 
@@ -45,3 +49,4 @@ server = Server((req, res) -> app(req))
 cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
 key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
 run(server, port = 8000, ssl = (cert, key))
+

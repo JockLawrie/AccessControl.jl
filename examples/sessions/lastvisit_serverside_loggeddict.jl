@@ -1,14 +1,13 @@
 #=
-    Contents: Example 1c: Display last visit with Redis as database.
+    Contents: Example: Display last visit with LoggedDict as database.
 =#
 using HttpServer
 using AccessControl
 
-# Redis as data store for sessions
-using Redis
-using ConnectionPools
-cp  = ConnectionPool(RedisConnection(), 10, 10, 500, 10)    # Pool of connections to the Redis database
-AccessControl.update_config!(session = Dict(:datastore => cp))
+# LoggedDict as data store for sessions
+using LoggedDicts
+sessions = LoggedDict("sessions", "sessions.log", true)    # Logging turned off
+AccessControl.update_config!(session = Dict(:datastore => sessions))
 
 # Handler
 function home!(req, res)
@@ -49,4 +48,3 @@ server = Server((req, res) -> app(req))
 cert   = MbedTLS.crt_parse_file(rel(@__FILE__, "keys/server.crt"))
 key    = MbedTLS.parse_keyfile(rel(@__FILE__, "keys/server.key"))
 run(server, port = 8000, ssl = (cert, key))
-

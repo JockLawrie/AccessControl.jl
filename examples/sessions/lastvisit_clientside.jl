@@ -1,24 +1,21 @@
 #=
-    Contents: Example 1b: Display last visit with LoggedDict as database.
+    Contents: Example: Display last visit with client-side sessions.
 =#
 using HttpServer
 using AccessControl
 
-# LoggedDict as data store for sessions
-using LoggedDicts
-sessions = LoggedDict("sessions", "sessions.log", true)    # Logging turned off
-AccessControl.update_config!(session = Dict(:datastore => sessions))
-
 # Handler
 function home!(req, res)
-    session_id = read_sessionid(req)
-    if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session_id = session_create!(res, "")
-        res.data   = "This is your first visit."
+    session = session_read(req)
+    if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
+        session  = session_create!("")           # username = ""
+        res.data = "This is your first visit."
+        session_write!(res, session)
     else
-        last_visit = session_get(session_id, "lastvisit")
+        last_visit = session["lastvisit"]
         res.data   = "Welcome back. Your last visit was at $last_visit."
-        session_set!(session_id, "lastvisit", string(now()))
+	session["lastvisit"] = string(now())
+        session_write!(res, session)
     end
 end
 
