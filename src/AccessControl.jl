@@ -31,7 +31,7 @@ config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 5 * 60 * 1000,   
 # Common
 include("utils.jl")
 include("configure.jl")
-include("default_handlers.jl")
+include("generic_handlers.jl")
 # Sessions
 include("sessions/secure_cookies.jl")
 include("sessions/clientside_sessions.jl")
@@ -39,9 +39,10 @@ include("sessions/serverside_common.jl")
 include("sessions/serverside_loggeddict.jl")
 include("sessions/serverside_redis.jl")
 # Authentication
-include("default_forms.jl")
 include("backends/backends_common.jl")
-include("authentication/authentication_utils.jl")
+include("authentication/authn_html.jl")
+include("authentication/authn_handlers.jl")
+include("authentication/authn_utils.jl")
 include("authentication/passwordhash/password_hash.jl")
 include("authentication/passwordhash/pbkdf2.jl")
 

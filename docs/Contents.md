@@ -3,9 +3,12 @@
 1. [Sessions](Sessions.md)
 2. [Authentication](Authentication.md)
 3. Authorization
-4. [Admin Access](AdminAccess.md) (Read and write access control data)
+4. Admin Access (Read and write access control data)
+    - Via GUI
+    - Via command line
 5. Deploying AccessControl as a stand-alone service
 - [Appendix A: Secure Cookies](SecureCookies.md)
+- [Appendix B: Password Hashing](PasswordHash.md)
 
 
 ## Todo
@@ -19,3 +22,10 @@
 ### Authentication
 1. login!: max_attempts, lockout
 2. pwdreset!: max_attempts, lockout (use login settings)
+
+### Password Hashing
+1. Implement an API for enabling app developers to specify password rules.
+
+### Secure cookies
+1. Ensure that cookie attributes are being used correctly
+2. Compress data before encrypting?
