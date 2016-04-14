@@ -35,9 +35,9 @@ include("default_handlers.jl")
 # Sessions
 include("sessions/secure_cookies.jl")
 include("sessions/clientside_sessions.jl")
-include("sessions/serverside_sessions/serverside_common.jl")
-include("sessions/serverside_sessions/serverside_loggeddict.jl")
-include("sessions/serverside_sessions/serverside_redis.jl")
+include("sessions/serverside_common.jl")
+include("sessions/serverside_loggeddict.jl")
+include("sessions/serverside_redis.jl")
 # Authentication
 include("default_forms.jl")
 include("backends/backends_common.jl")
