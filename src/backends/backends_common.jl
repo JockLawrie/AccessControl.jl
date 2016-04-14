@@ -20,7 +20,8 @@ end
 
 
 function remove_sessionid_from_user!(username::AbstractString, session_id::AbstractString)
-    remove_sessionid_from_user!(config[:acdata], username, session_id)
+    acdata = config[:acdata]
+    acdata != nothing && remove_sessionid_from_user!(config[:acdata], username, session_id)
 end
 
 
@@ -31,6 +32,8 @@ end
 
 
 function set_password!(username::AbstractString, password::AbstractString)
+    acdata = config[:acdata]
+    acdata == nothing && error("You haven't specified a backend for access control data.")
     set_password!(config[:acdata], username, password)
 end
 

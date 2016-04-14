@@ -54,4 +54,18 @@ end
 is_not_logged_in(req) = !is_logged_in(req)
 
 
+"Returns: username, derived from request regardless of whether the session is client-side or server-side."
+function get_username(req::Request)
+    username = ""
+    if config[:session][:datastore] == :cookie
+	session  = session_read(req)
+	username = session["username"]
+    else
+	session_id = read_sessionid(req)
+	username   = session_get(session_id, "username")
+    end
+    username
+end
+
+
 # EOF
