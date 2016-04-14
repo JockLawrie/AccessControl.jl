@@ -41,27 +41,28 @@ Both client-side and server-side sessions have the following `session_config` in
     - max_n_sessions::Int   Max number of simultaneous sessions per user
     - timeout::Int          Number of seconds between requests that results in a session timeout
 =#
-session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" => 600)
+session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" => 600)    # Default values
 ```
 
-Client-side sessions are `Dict`s stored in a cookie. They have the following create, read and delete functions. Updating sessions occurs on the server using standard Julia syntax for modifying `Dict`s.
+Client-side sessions are `Dict`s stored in a cookie. They have the following create, read, write and delete functions. Updating sessions occurs in the application code using standard Julia syntax for modifying `Dict`s.
 ```julia
 ### Client-side sessions
-session = create_session(username)    # Return Dict("id" => session_id)
-session = read_session(req, "id")     # Read the session from the request's "id" cookie
-write_session!(res, "id", session)    # Write the session object to the response's "id" cookie
-delete_session!(res, "id")            # Set the response's "id" cookie to an invalid state
+session = session_create!(username)    # Returns: Dict("username" => username, "lastvisit" => string(now()))
+session = session_read(req)            # Read the session object from the request's session cookie
+session_write!(res, session)           # Write the session to the "id" cookie
+session_delete!(res)                   # Set the response's "id" cookie to an invalid state
 ```
 
 Server-side sessions store a session ID in a cookie AND a session object on the database. The implementation of the session object depends on the database used. This package provides the following CRUD (create/read/update/delete) functions. Currently `LoggedDict`s and Redis are the only supported databases.
 ```julia
 ### Server-side sessions
-session_id = create_session(con, username, res, "id")    # Init session_id => session on the database and set the "id" cookie to session_id
-session_id = read_sessionid(req, "id")                   # Read the session_id from the "id" cookie
-get(con, keys...)                                        # Read the value located at the path defined by keys...
-set!(con, keys..., value)                                # Set the value located at the path defined by keys...
-delete_session!(con, session_id, res, "id")              # Delete session from database and set the response's "id" cookie to an invalid state
+session_id = session_create!(res, username)    # Init session_id => session on the database and set the "id" cookie to session_id
+session_id = read_sessionid(req)               # Read the session_id from the "id" cookie
+session_get(keys...)                           # Read the value located at the path defined by keys...
+session_set!(keys..., value)                   # Set the value located at the path defined by keys...
+session_delete!(res, session_id)               # Delete session from database and set the response's "id" cookie to an invalid state
 ```
+
 
 ## Example 1: Display last visit
 This example displays the timestamp of the requestor's last visit. Run it and visit `https://0.0.0.0:8000/home`. Reload the page (Ctrl-r) to see it update.
@@ -105,75 +106,59 @@ using AccessControl
 
 # Handler
 function home!(req, res)
-    session = read_session(req, "id")
+    session = session_read(req)
     if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session  = create_session("")
+        session  = session_create!("")
         res.data = "This is your first visit."
     else
         last_visit = session["lastvisit"]
         res.data   = "Welcome back. Your last visit was at $last_visit."
+	session["lastvisit"] = string(now())
     end
-    session["lastvisit"] = string(now())
-    write_session!(res, "id", session)
+    write_session!(res, session)
 end
 ```
 
-### Example 1b: server-side sessions with LoggedDict as database
+### Examples 1b and 1c: server-side sessions
 Here the `sessions` object serves as our database. It is a `Dict` with key-value pairs: `session_id => session_object`, where `session_object` is also a `Dict`.
 ```julia
 using HttpServer
 using AccessControl
-using LoggedDicts
 
-# Database
+# Example 1b: LoggedDict as data store for sessions
+using LoggedDicts
 sessions = LoggedDict("sessions", "sessions.log", true)    # Logging turned off
+AccessControl.update_config!(session = Dict(:datastore => sessions))
+
+#=
+# Example 1c: Redis as data store for sessions
+using Redis
+using ConnectionPools
+cp  = ConnectionPool(RedisConnection(), 10, 10, 500, 10)    # Pool of connections to the Redis database
+AccessControl.update_config!(session = Dict(:datastore => cp))
+=#
 
 # Handler
 function home!(req, res)
-    session_id = read_sessionid(req, "id")
+    session_id = read_sessionid(req)
     if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
-        session_id = create_session(sessions, "", res, "id")
+        session_id = session_create!(res, "")
         res.data   = "This is your first visit."
     else
-        last_visit = get(sessions, session_id, "lastvisit")
+        last_visit = session_get(session_id, "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
+	session_set!(session_id, "lastvisit", string(now()))
     end
-    set!(sessions, session_id, "lastvisit", string(now()))
 end
 ```
 
-### Example 1c: server-side sessions with Redis as database
-Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in Redis. Since Redis can't nest data like this, we flatten the sequence of keys and store `k1:k2:k3 => v`.
+__Note: Storing session data on the server__:
+Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in a session. If the session is stored in a `LoggedDict` we can use the syntax `set!(ld, k1, k2, k3, v)`. This uses the concept of a _key path_, which is the ordered sequence of keys `k1, k2, k3`.
 
-__Definition:__ A _key path_ is the path defined by an ordered sequence of keys.
+What if we want to store this session data in Redis, which can't nest data structures like this? We use the key path idea again: we flatten the sequence of keys and store `k1:k2:k3 => v`. Thus the key path concept allows a common API for different data stores.
 
-In our example the key path was written as `k1:k2:k3`, but any similar notation will suffice.
 To store sessions in Redis we use the following schema:
 
 - "sessions" => Set(session_id1, ...),      set of current valid session_ids.
 - "session:$(session_id):$(keypath)" => v,  key-value pairs for session_id.
 - "session:keypaths" => Set(keypath1, ...), exploits the fact that session fields come from a common app-specific set.
-```julia
-using HttpServer
-using AccessControl
-using Redis
-using ConnectionPools
-
-# Database
-cp  = ConnectionPool(RedisConnection(), 0, 10, 10, 500, 10)    # Pool of connections to the Redis database
-
-# Handler
-function home!(req, res)
-    con        = get_connection!(cp)                           # Get a connection to Redis database from the connection pool
-    session_id = read_sessionid(req, "id")
-    if session_id == ""                                        # "id" cookie does not exist...session hasn't started...start a new session.
-        session_id = create_session(con, "", res, "id")
-        res.data   = "This is your first visit."
-    else
-        last_visit = get(con, "session:$session_id", "lastvisit")
-        res.data   = "Welcome back. Your last visit was at $last_visit."
-    end
-    set!(con, "session:$session_id", "lastvisit", string(now()))
-    free!(cp, con)                                             # Release the connection back to the connection pool
-end
-```
