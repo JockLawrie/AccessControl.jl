@@ -113,7 +113,7 @@ function home!(req, res)
     else
         last_visit = session["lastvisit"]
         res.data   = "Welcome back. Your last visit was at $last_visit."
-	session["lastvisit"] = string(now())
+        session["lastvisit"] = string(now())
     end
     write_session!(res, session)
 end
@@ -147,12 +147,13 @@ function home!(req, res)
     else
         last_visit = session_get(session_id, "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."
-	session_set!(session_id, "lastvisit", string(now()))
+        session_set!(session_id, "lastvisit", string(now()))
     end
 end
 ```
 
 __Note: Storing session data on the server__:
+
 Suppose we want to store `Dict(k1 => Dict(k2 => Dict(k3 => v)))` in a session. If the session is stored in a `LoggedDict` we can use the syntax `set!(ld, k1, k2, k3, v)`. This uses the concept of a _key path_, which is the ordered sequence of keys `k1, k2, k3`.
 
 What if we want to store this session data in Redis, which can't nest data structures like this? We use the key path idea again: we flatten the sequence of keys and store `k1:k2:k3 => v`. Thus the key path concept allows a common API for different data stores.
