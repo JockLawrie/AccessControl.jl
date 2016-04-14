@@ -17,7 +17,6 @@ function csrng(numbytes::Integer)
 end
 
 
-#=
 """
 Convert number to byte array.
 The implementation is a modified version of that found in Stack Overflow question 3076680.
@@ -30,6 +29,7 @@ function num_to_bytearray(x)
 end
 
 
+#=
 """
 Returns true is password adheres to the following formatting rules:
   R1) Length at least 8 characters

@@ -8,11 +8,14 @@ using ConnectionPools
 import Redis.get, LoggedDicts.set!
 
 export
-    session_create!, session_delete!,                                         # Common session functions
-    session_read, session_write!,                                             # Client-side sessions
-    read_sessionid, session_get, session_set!,                                # Server-side sessions
-    login!, logout!, process_pwdreset!, notfound!, badrequest!, redirect!,    # Default handlers
-    is_logged_in, is_not_logged_in                                            # utils
+    session_create!, session_delete!,             # Common session functions
+    session_read, session_write!,                 # Client-side sessions
+    read_sessionid, session_get, session_set!,    # Server-side sessions
+    notfound!, badrequest!, redirect!,            # Generic handlers
+    login!, logout!, process_pwdreset!,           # AuthN handlers
+    login_form, pwdreset_form, logout_link, logout_pwdreset_links,    # AuthN HTML
+    acpaths,
+    is_logged_in, is_not_logged_in                # Utils
 
 ### Config - to be updated by the app's call to AccessControl.configure()
 config                  = Dict{Symbol, Any}()
@@ -40,6 +43,7 @@ include("sessions/serverside_loggeddict.jl")
 include("sessions/serverside_redis.jl")
 # Authentication
 include("backends/backends_common.jl")
+include("backends/backend_loggeddict.jl")
 include("authentication/authn_html.jl")
 include("authentication/authn_handlers.jl")
 include("authentication/authn_utils.jl")
@@ -65,7 +69,7 @@ acpaths["/process_pwdreset"] = process_pwdreset!    # Handle credentials supplie
     Specifically, these functions depend on the type of the app's access control data store
 =#
 
-
+#=
 # User create/delete
 function create_user!  end
 function delete_user!  end
@@ -84,6 +88,6 @@ function add_role! end
 function add_roles! end
 function remove_role! end
 function remove_roles! end
-
+=#
 
 end # module

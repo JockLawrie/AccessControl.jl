@@ -35,7 +35,12 @@ end
 function logout!(req, res)
     is_not_logged_in(req) && (notfound!(res); return)
     redirect!(res, config[:logout][:redirect])
-    session_delete!(res)
+    if config[:session][:datastore] == :cookie
+	session_delete!(res)
+    else
+	session_id = read_sessionid(req)
+	session_delete!(res, session_id)
+    end
 end
 
 

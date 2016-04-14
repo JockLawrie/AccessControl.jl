@@ -43,8 +43,7 @@ end
 
 "Delete session from database and set the specified cookie to an invalid state."
 function session_delete!(res::Response, session_id::AbstractString)
-    cookiename = config[:session][:cookiename]
-    session_delete!(config[:session][:datastore], session_id, res, cookiename)
+    session_delete!(config[:session][:datastore], res, session_id)
 end
 
 
