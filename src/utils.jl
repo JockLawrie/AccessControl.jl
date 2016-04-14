@@ -1,5 +1,5 @@
 #=
-    Contents: Gernal utilities.
+    Contents: General utilities.
 =#
 
 "Returns true if the application is using secure cookies."
