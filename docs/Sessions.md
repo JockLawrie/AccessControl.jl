@@ -138,15 +138,15 @@ using AccessControl
 
 # Example 1b: LoggedDict as data store for sessions
 using LoggedDicts
-sessions = LoggedDict("sessions", "sessions.log", true)    # Logging turned off
-AccessControl.update_config!(session = Dict(:datastore => sessions))
+sessions = LoggedDict("sessions", "sessions.log", true)                 # Logging turned off
+AccessControl.update_config!(session = Dict(:datastore => sessions))    # Updates default config
 
 #=
 # Example 1c: Redis as data store for sessions
 using Redis
 using ConnectionPools
-cp  = ConnectionPool(RedisConnection(), 10, 10, 500, 10)    # Pool of connections to the Redis database
-AccessControl.update_config!(session = Dict(:datastore => cp))
+cp  = ConnectionPool(RedisConnection(), 10, 10, 500, 10)                # Pool of connections to the Redis database
+AccessControl.update_config!(session = Dict(:datastore => cp))          # Updates default config
 =#
 
 # Handler
