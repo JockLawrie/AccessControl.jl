@@ -14,13 +14,13 @@ function login!(req, res)
     if req.method == "POST"                                           # Require that login requests are POST requests
         username, password = extract_username_password(req)
 	if login_credentials_are_valid(username, password, acdata)    # Successful login: Redirect
-	    redirect!(res, success_redirect)
 	    if config[:session][:datastore] == :cookie
 		session = session_create!(username)
 		session_write!(res, session)
 	    else
 		session_create!(res, username)
 	    end
+	    redirect!(res, success_redirect)
 	else                                                          # Unsuccessful login: Return fail message
 	    msg = config[:login][:fail_msg]
 	    res.data = "<script><alert($(msg));/script>"

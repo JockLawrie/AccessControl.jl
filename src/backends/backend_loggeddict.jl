@@ -9,7 +9,7 @@
 using LoggedDicts
 
 
-function create_user!(acdata::LoggedDict, username::AbstractString, password::AbstractString, roles::Set{AbstractString})
+function create_user!(acdata::LoggedDict, username::AbstractString, password::AbstractString, roles::Set)
     set!(acdata,  username, Dict{Symbol, Any}())    # username => Dict{Symbol, Any}
     set_password!(acdata, username, password)
     set!(acdata, username, :roles, roles)
@@ -76,6 +76,12 @@ function remove_roles!(acdata::LoggedDict, username::AbstractString, roles...)
     for role in roles
 	pop!(acdata, username, :roles, role)
     end
+end
+
+
+function has_role(acdata::LoggedDict, username::AbstractString, role::AbstractString)
+    roles = get(acdata, username, :roles)
+    in(role, roles)
 end
 
 

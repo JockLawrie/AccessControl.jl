@@ -63,4 +63,10 @@ function remove_roles!(username::AbstractString, roles...)
 end
 
 
+"Returns: True if username has the role, false otherwise."
+function has_role(username::AbstractString, role::AbstractString)
+    has_role(config[:acdata], username, role)
+end
+
+
 # EOF

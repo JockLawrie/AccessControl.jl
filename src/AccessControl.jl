@@ -8,14 +8,15 @@ using ConnectionPools
 import Redis.get, LoggedDicts.set!
 
 export
+    acpaths,                                      # Dict(path => handler) for authentication functionality
     session_create!, session_delete!,             # Common session functions
     session_read, session_write!,                 # Client-side sessions
     read_sessionid, session_get, session_set!,    # Server-side sessions
     notfound!, badrequest!, redirect!,            # Generic handlers
-    login!, logout!, process_pwdreset!,           # AuthN handlers
     login_form, pwdreset_form, logout_link, logout_pwdreset_links,    # AuthN HTML
-    acpaths,
-    is_logged_in, is_not_logged_in                # Utils
+    login!, logout!, process_pwdreset!,           # AuthN handlers
+    is_logged_in, is_not_logged_in,               # AuthN utils
+    has_role                                      # AuthZ utils
 
 ### Config - to be updated by the app's call to AccessControl.configure()
 config                  = Dict{Symbol, Any}()
@@ -49,6 +50,8 @@ include("authentication/authn_handlers.jl")
 include("authentication/authn_utils.jl")
 include("authentication/passwordhash/password_hash.jl")
 include("authentication/passwordhash/pbkdf2.jl")
+# Authorization
+include("authorization/authz_utils.jl")
 
 
 ### Start-up scripts
