@@ -27,7 +27,7 @@
 3. CSRF protection for password reset form.
 
 ##### Authorization
-1. Make get_role(username) more usable.
+1. Make get_role(username) more flexible...what if a user has multiple roles?
 
 ##### Password Hashing
 1. Implement an API for enabling app developers to specify password rules.

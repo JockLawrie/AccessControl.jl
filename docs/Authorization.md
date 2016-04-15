@@ -8,6 +8,7 @@ Having established a user's identity (authentication), we then grant or deny acc
 2. Define a table that maps user types (roles) to the set of resources that they can access.
 3. Define access rules within the resource handler, based on either individual users or roles.
 
+
  _AccessControl.jl_ uses option 3, which is _role-based access control_. Each user is assigned a role and access to a requested resource is granted or denied according to the role. Defining access rules for roles is easier than doing so for individuals because, typically, there are fewer roles than users and thus fewer rules to keep track of.
 
 Of course, if all users have access to the same resources you can simply omit explicit authorization from your application. As we've seen in earlier examples, access can be granted to everyone, or only to users who are logged in.
