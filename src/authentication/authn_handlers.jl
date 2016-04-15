@@ -26,7 +26,7 @@ function login!(req, res)
 	    redirect!(res, loc)
 	else                                                          # Unsuccessful login: Return fail message
 	    msg = config[:login][:fail_msg]
-	    res.data = "<script><alert($(msg));/script>"
+	    res.data = msg
 	end
     else
 	badrequest!(res)
@@ -66,7 +66,7 @@ function process_pwdreset!(req, res)
 	    redirect!(res, loc)
         else                                                # Unsuccessful password reset: Return 400: Bad Request
 	    msg = config[:pwdreset][:fail_msg]
-	    res.data = "<script><alert($(msg));/script>"
+	    res.data = msg
         end
     else
         badrequest!(res)
