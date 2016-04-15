@@ -9,6 +9,7 @@ Returns a Dict with:
 - 'username'  => username 
 """
 function session_create!(username::AbstractString)
+    get_n_sessions(username) >= config[:session][:max_n_sessions] && return Dict()
     result             = Dict{AbstractString, Any}()
     result["id"]       = generate_session_id()
     result["username"] = username
@@ -28,7 +29,13 @@ function session_read(req::Request)
     else
 	s = get_cookie_value(req, cookiename)
     end
-    s == "" ? s : JSON.parse(s)
+
+    # Check whether session has timed out
+    if s != ""
+	session = JSON.parse(s)
+	session_is_valid(session) && s = session
+    end
+    s
 end
 
 "Write the session object to the specified cookie."
@@ -42,6 +49,27 @@ end
 function session_delete!(res::Response)
     cookiename = config[:session][:cookiename]
     invalidate_cookie!(res, cookiename)
+end
+
+
+"Returns true if session has a session_id and hasn't expired."
+function session_is_valid(session::Dict)
+    result = true
+    if !haskey(session, "id")
+	result = false
+    elseif !haskey(session, "username")
+	result = false
+    elseif haskey(config[:session], :timeout)
+	if haskey(session, "lastvisit")
+	    dt = DateTime(session["lastvisit"])
+	    if dt + Dates.Second(config[:session][:timeout]) < now()
+		result = false    # Session has timed out
+	    end
+	else
+	    result = false
+	end
+    end
+    result
 end
 
 

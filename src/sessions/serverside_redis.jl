@@ -63,9 +63,20 @@ function delete_all_sessions_from_database!(con::RedisConnection)
 end
 
 
-"Returns: true if session_id exists in the server-side data store."
 function session_is_valid(con::RedisConnection, session_id::AbstractString)
-    sismember(con, "sessions", session_id)
+    result = sismember(con, "sessions", session_id)
+    if haskey(config[:session], :timeout)
+        dt_str = session_get(con, session_id, session_id, "lastvisit")
+	if dt_str != nothing
+	    dt = DateTime(dt_str)
+	    if dt + Dates.Second(config[:session][:timeout]) < now()
+		result = false    # Session has timed out
+	    end
+	else
+	    result = false
+	end
+    end
+    result
 end
 
 

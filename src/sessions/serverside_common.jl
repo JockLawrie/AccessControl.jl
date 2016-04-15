@@ -4,13 +4,28 @@
 
 "Read the session_id from the specified cookie."
 function read_sessionid(req::Request, cookiename::AbstractString)
-    using_secure_cookies() ? get_securecookie_data(req, cookiename) : get_cookie_value(req, cookiename)
+    session_id = ""
+    if using_secure_cookies()
+	session_id = get_securecookie_data(req, cookiename)
+    else
+	session_id = get_cookie_value(req, cookiename)
+    end
+
+    # Check whether session has timed out
+    if !session_is_valid(session_id)
+	session_id = ""
+    end
+    session_id
 end
 
 read_sessionid(req::Request) = read_sessionid(req, config[:session][:cookiename])
 
 
-"Returns: true if session_id exists in the server-side data store."
+"""
+Returns true if:
+    - session_id exists in the server-side data store, and
+    - the session hasn't timed out
+"""
 function session_is_valid(session_id::AbstractString)
     session_is_valid(config[:session], session_id)
 end

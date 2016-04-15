@@ -29,9 +29,20 @@ function session_delete!(sessions::LoggedDict, res::Response, session_id::Abstra
 end
 
 
-"Returns: true if session_id exists in the server-side data store."
 function session_is_valid(sessions::LoggedDict, session_id::AbstractString)
-    haskey(sessions, session_id)
+    result = haskey(sessions, session_id)
+    if haskey(config[:session], :timeout)
+	if haskey(sessions, session_id, "lastvisit")
+	    dt_str = get(sessions, session_id, "lastvisit")
+	    dt     = DateTime(dt_str)
+	    if dt + Dates.Second(config[:session][:timeout]) < now()
+		result = false    # Session has timed out
+	    end
+	else
+	    result = false
+	end
+    end
+    result
 end
 
 
