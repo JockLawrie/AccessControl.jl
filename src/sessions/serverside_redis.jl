@@ -66,7 +66,7 @@ end
 function session_is_valid(con::RedisConnection, session_id::AbstractString)
     result = sismember(con, "sessions", session_id)
     if haskey(config[:session], :timeout)
-        dt_str = session_get(con, session_id, session_id, "lastreq")
+        dt_str = session_get(con, session_id, "lastreq")
 	if dt_str == nothing
 	    result = false
 	else

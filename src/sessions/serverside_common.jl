@@ -32,13 +32,13 @@ Returns true if:
     - the session hasn't timed out
 """
 function session_is_valid(session_id::AbstractString)
-    session_is_valid(config[:session], session_id)
+    session_is_valid(config[:session][:datastore], session_id)
 end
 
 
 function session_is_valid(cp::ConnectionPool, session_id::AbstractString)
     con    = get_connection!(cp)
-    result = session_is_valid(con, username)
+    result = session_is_valid(con, session_id)
     release!(cp, con)
     result
 end
@@ -47,6 +47,13 @@ end
 "Updates session.lastreq."
 function update_lastreq!(session_id::AbstractString)
     update_lastreq!(config[:session][:datastore], session_id)
+end
+
+
+function update_lastreq!(cp::ConnectionPool, session_id::AbstractString)
+    con    = get_connection!(cp)
+    update_lastreq!(con, session_id)
+    release!(cp, con)
 end
 
 
