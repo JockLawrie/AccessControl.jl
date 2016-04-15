@@ -15,6 +15,11 @@ function read_sessionid(req::Request, cookiename::AbstractString)
     if !session_is_valid(session_id)
 	session_id = ""
     end
+
+    # Update lastreq
+    if session_id != ""
+	update_lastreq!(session_id)
+    end
     session_id
 end
 
@@ -32,9 +37,16 @@ end
 
 
 function session_is_valid(cp::ConnectionPool, session_id::AbstractString)
-    con = get_connection!(cp)
-    session_is_valid(con, username)
+    con    = get_connection!(cp)
+    result = session_is_valid(con, username)
     release!(cp, con)
+    result
+end
+
+
+"Updates session.lastreq."
+function update_lastreq!(session_id::AbstractString)
+    update_lastreq!(config[:session][:datastore], session_id)
 end
 
 

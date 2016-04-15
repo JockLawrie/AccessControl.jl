@@ -25,8 +25,8 @@ function session_create!(con::RedisConnection, username::AbstractString, res::Re
     set(con, "session:$session_id:username", username)    # Add username to the session data
     sadd(con, "session:keypaths", "username")             # Add "username"  to the "session:keypaths" Set
     if haskey(config[:session], :timeout)                 # Add "lastvisit" to the "session:keypaths" Set
-	sadd(con, "session:keypaths", "lastvisit")
-	set(con, "session:$session_id:lastvisit", string(now()))    # Add lastvisit to the session data
+	sadd(con, "session:keypaths", "lastreq")
+	update_lastreq!(con, session_id)
     end
     add_sessionid_to_user!(username, session_id)
     write_to_cookie!(res, cookiename, session_id)
@@ -66,17 +66,22 @@ end
 function session_is_valid(con::RedisConnection, session_id::AbstractString)
     result = sismember(con, "sessions", session_id)
     if haskey(config[:session], :timeout)
-        dt_str = session_get(con, session_id, session_id, "lastvisit")
-	if dt_str != nothing
+        dt_str = session_get(con, session_id, session_id, "lastreq")
+	if dt_str == nothing
+	    result = false
+	else
 	    dt = DateTime(dt_str)
 	    if dt + Dates.Second(config[:session][:timeout]) < now()
 		result = false    # Session has timed out
 	    end
-	else
-	    result = false
 	end
     end
     result
+end
+
+
+function update_lastreq!(con::RedisConnection, session_id::AbstractString)
+    set(con, "session:$session_id:lastreq", string(now()))
 end
 
 
@@ -115,8 +120,10 @@ end
 
 
 function session_set!(con::RedisConnection, session_id, keys_value...)
+    k1 = keys_value[1]
+    (k1 == "lastreq" || k1 == "username") && return                       # Forbid changing username or lastreq
     k = construct_keypath(true, keys_value...)
-    sadd(con, "session:keypaths", k)                                     # Add key path to the set of key paths
+    sadd(con, "session:keypaths", k)                                      # Add key path to the set of key paths
     set(con, "session:$session_id:$k", keys_value[length(keys_value)])    # Set keypath => value
 end
 

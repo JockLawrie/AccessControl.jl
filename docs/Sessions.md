@@ -34,14 +34,17 @@ It is often argued that client-side cookies scale better than server-side cookie
 __NOTE__: In these docs we run all examples under HTTPS rather than HTTP. This security measure prevents attackers from reading our requests and responses directly off the wire.
 
 ## The Basic API
-Both client-side and server-side sessions have the following `session_config` in common, which can be modified as desired:
+Access control configuration is stored in `AccessControl.config`, which is a `Dict`. Both client-side and server-side sessions have the following default session configuration in common, which can be modified as desired:
 ```julia
-#=
-  Config
-    - max_n_sessions::Int   Max number of simultaneous sessions per user
-    - timeout::Int          Number of seconds between requests that results in a session timeout
-=#
-session_config = Dict("securecookies" => true, "max_n_sessions" => 1, "timeout" => 600)    # Default values
+config[:session] = Dict(:datastore => :cookie,    # One of: :cookie::Symbol, ld::LoggedDict, cp::ConnectionPool
+                        :cookiename => "id",      # Store the session (client-side) or session ID (server-side) in the "id" cookie
+                        :id_length => 32,         # Length of the session ID in bytes
+                        :max_n_sessions => 1,     # Max number of simultaneous sessions for a given user
+                        :timeout => 600)          # Max number of seconds between requests in the same session
+
+config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
+                                            :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
+                                            :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
 ```
 
 Client-side sessions are `Dict`s stored in a cookie. They have the following create, read, write and delete functions. Updating sessions occurs in the application code using standard Julia syntax for modifying `Dict`s.
@@ -110,6 +113,7 @@ function home!(req, res)
     if session == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
         session  = session_create!("")
         res.data = "This is your first visit."
+        session["lastvisit"] = string(now())
         session_write!(res, session)
     else
         last_visit = session["lastvisit"]
@@ -155,6 +159,7 @@ function home!(req, res)
     if session_id == ""                             # "id" cookie does not exist...session hasn't started...start a new session.
         session_id = session_create!(res, "")
         res.data   = "This is your first visit."
+        session_set!(session_id, "lastvisit", string(now()))
     else
         last_visit = session_get(session_id, "lastvisit")
         res.data   = "Welcome back. Your last visit was at $last_visit."

@@ -14,7 +14,7 @@ function session_create!(username::AbstractString)
     result["id"]       = generate_session_id()
     result["username"] = username
     if haskey(config[:session], :timeout)
-	result["lastvisit"] = string(now())
+	update_lastreq!(result)
     end
     result
 end
@@ -33,8 +33,15 @@ function session_read(req::Request)
     # Check whether session has timed out
     if s != ""
 	session = JSON.parse(s)
-	session_is_valid(session) && s = session
+	if session_is_valid(session)
+	    s = session
+	else
+	    s = ""
+	end
     end
+
+    # Update session["lastreq"]
+    s != "" && update_lastreq!(s)
     s
 end
 
@@ -52,7 +59,11 @@ function session_delete!(res::Response)
 end
 
 
-"Returns true if session has a session_id and hasn't expired."
+"""
+Returns true if the session:
+    - has a session ID, and
+    - hasn't timed out
+"""
 function session_is_valid(session::Dict)
     result = true
     if !haskey(session, "id")
@@ -60,8 +71,8 @@ function session_is_valid(session::Dict)
     elseif !haskey(session, "username")
 	result = false
     elseif haskey(config[:session], :timeout)
-	if haskey(session, "lastvisit")
-	    dt = DateTime(session["lastvisit"])
+	if haskey(session, "lastreq")
+	    dt = DateTime(session["lastreq"])
 	    if dt + Dates.Second(config[:session][:timeout]) < now()
 		result = false    # Session has timed out
 	    end
@@ -70,6 +81,11 @@ function session_is_valid(session::Dict)
 	end
     end
     result
+end
+
+
+function update_lastreq!(session::Dict)
+    session["lastreq"] = string(now())
 end
 
 
