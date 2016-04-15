@@ -120,8 +120,6 @@ end
 
 
 function session_set!(con::RedisConnection, session_id, keys_value...)
-    k1 = keys_value[1]
-    (k1 == "lastreq" || k1 == "username") && return                       # Forbid changing username or lastreq
     k = construct_keypath(true, keys_value...)
     sadd(con, "session:keypaths", k)                                      # Add key path to the set of key paths
     set(con, "session:$session_id:$k", keys_value[length(keys_value)])    # Set keypath => value

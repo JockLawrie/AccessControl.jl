@@ -57,8 +57,6 @@ end
 
 
 function session_set!(sessions::LoggedDict, session_id, keys...)
-    k1 = keys[1]
-    (k1 == "lastreq" || k1 == "username") && return    # Forbid changing username or lastreq
     set!(sessions, session_id, keys...)
 end
 

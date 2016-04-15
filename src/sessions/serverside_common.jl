@@ -102,6 +102,8 @@ end
 
 
 function session_set!(session_id, keys_value...)
+    k1 = keys_value[1]
+    (k1 == "lastreq" || k1 == "username") && return    # Forbid changing username or lastreq
     session_set!(config[:session][:datastore], session_id, keys_value...)
 end
 

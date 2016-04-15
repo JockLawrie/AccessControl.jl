@@ -36,7 +36,7 @@ function session_read(req::Request)
 	if session_is_valid(session)
 	    s = session
 	else
-	    s = ""
+	    s = ""    # Invalidate the session
 	end
     end
 
