@@ -69,4 +69,14 @@ function has_role(username::AbstractString, role::AbstractString)
 end
 
 
+"""
+Returns: role for username.
+
+ASSUMES: There is only one role.
+"""
+function get_role(username::AbstractString)
+    get_role(config[:acdata], username)
+end
+
+
 # EOF

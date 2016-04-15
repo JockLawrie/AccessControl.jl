@@ -8,7 +8,7 @@ Returns: default login form.
 Ensures HTTP method is POST.
 """
 function login_form()
-    "<form action='login' method='post'>
+    "<form action='/login' method='post'>
 	 Username:<br>
 	 <input type='text' id='username' name='username'/>
 	 <br>
@@ -22,15 +22,15 @@ end
 
 function logout_link()
     "<ul>
-	 <li><a href='logout'>Logout</a></li>
+	 <li><a href='/logout'>Logout</a></li>
      </ul>"
 end
 
 
 function logout_pwdreset_links()
     "<ul>
-         <li><a href='logout'>Logout</a></li>
-         <li><a href='reset_password'>Reset Password</a></li>
+         <li><a href='/logout'>Logout</a></li>
+         <li><a href='/reset_password'>Reset Password</a></li>
      </ul>"
 end
 
@@ -38,7 +38,7 @@ end
 function pwdreset_form()
     "<h2>Password reset.</h2>
      <br>
-     <form action='process_pwdreset' method='post'>
+     <form action='/process_pwdreset' method='post'>
          Current password:<br>
          <input type='password' id='current_pwd' name='current_pwd'/>
 	 <br>

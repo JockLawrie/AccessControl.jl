@@ -7,11 +7,15 @@ using LoggedDicts     # Data store for sessions as well as access control data (
 sessions = LoggedDict("sessions", "sessions.log", true)
 
 # Configure access control
-acdata          = LoggedDict("acdata", "acdata.log")    # Initialize access control data
+function member_redirect(username::AbstractString)              # Function that defines a redirect location
+    role = AccessControl.get_role(username)
+    "/members/$(role)"
+end
+acdata          = LoggedDict("acdata", "acdata.log")            # Initialize access control data
 session_config  = Dict(:datastore => sessions)
-login_config    = Dict(:success_redirect => "/members_only")
+login_config    = Dict(:success_redirect => member_redirect)    # Use member_redirect(username) after login
 logout_config   = Dict(:redirect => "/home")
-pwdreset_config = Dict(:success_redirect => "/members_only")
+pwdreset_config = Dict(:success_redirect => member_redirect)
 AccessControl.update_config!(acdata, session = session_config, login = login_config, logout = logout_config, pwdreset = pwdreset_config)
 
 # Add users to acdata.
@@ -28,7 +32,7 @@ function home!(req, res)
 end
 
 function members_gold!(req, res)
-    has_role(req, "gold") && (notfound!(res); return)        # Check whether user is logged in and has the "gold" role
+    !has_role(req, "gold") && (notfound!(res); return)        # Check whether user is logged in and has the "gold" role
     session_id = read_sessionid(req)
     username   = session_get(session_id, "username")
     username   = escapestring(username, :html_text)
@@ -38,7 +42,7 @@ function members_gold!(req, res)
 end
 
 function members_silver!(req, res)
-    has_role(req, "silver") && (notfound!(res); return)        # Check whether user is logged in and has the "silver" role
+    !has_role(req, "silver") && (notfound!(res); return)        # Check whether user is logged in and has the "silver" role
     session_id = read_sessionid(req)
     username   = session_get(session_id, "username")
     username   = escapestring(username, :html_text)
@@ -53,9 +57,9 @@ function app(req::Request)
     rsrc = req.resource
     if rsrc == "/home"
         home!(req, res)
-    elseif rsrc == "/members_gold"
+    elseif rsrc == "/members/gold"
         members_gold!(req, res)
-    elseif rsrc == "/members_silver"
+    elseif rsrc == "/members/silver"
         members_silver!(req, res)
     elseif haskey(acpaths, rsrc)        # Note this new clause in the if statement for handling access control
         acpaths[rsrc](req, res)

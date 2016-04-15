@@ -42,7 +42,7 @@ function update_config_acdata!(acdata)
 	config[:acdata] = acdata
 	tp = typeof(acdata)
 	if tp == LoggedDict
-	    include(joinpath(dirname(@__FILE__), "backends/backend_loggeddict.jl"))
+	    #include(joinpath(dirname(@__FILE__), "backends/backend_loggeddict.jl"))
 	else
 	    error("Your access control data store has a type that AccessControl.jl doesn't yet support. Please file an issue at the AccessControl.jl github repo.")
 	end

@@ -85,4 +85,15 @@ function has_role(acdata::LoggedDict, username::AbstractString, role::AbstractSt
 end
 
 
+function get_role(acdata::LoggedDict, username::AbstractString)
+    result = ""
+    roles  = get(acdata, username, :roles)
+    for role in roles
+	result = role
+	break
+    end
+    result
+end
+
+
 # EOF

@@ -26,6 +26,9 @@
 2. pwdreset!: max_attempts, lockout (use login settings)
 3. CSRF protection for password reset form.
 
+##### Authorization
+1. Make get_role(username) more usable.
+
 ##### Password Hashing
 1. Implement an API for enabling app developers to specify password rules.
 

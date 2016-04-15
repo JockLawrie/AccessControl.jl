@@ -68,4 +68,22 @@ function get_username(req::Request)
 end
 
 
+"""
+Returns: Redirect location according to config.
+
+The config either specifies:
+- A location. Example: "/home", or
+- A function of the user: Example: f(username) = '/members/get_role(username)'
+"""
+function get_redirect_location(username::AbstractString, config_key1::Symbol, config_key2::Symbol)
+    loc = ""
+    _redirect = config[config_key1][config_key2]
+    if typeof(_redirect) == Function
+	loc = _redirect(username)
+    else
+	loc = _redirect
+    end
+    loc
+end
+
 # EOF
