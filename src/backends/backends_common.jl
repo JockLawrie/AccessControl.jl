@@ -15,13 +15,17 @@ end
 
 function add_sessionid_to_user!(username::AbstractString, session_id::AbstractString)
     acdata = config[:acdata]
-    acdata != nothing && add_sessionid_to_user!(acdata, username, session_id)
+    c1     = acdata != nothing
+    c2     = length(session_id) == config[:session][:id_length]
+    c1 && c2 && add_sessionid_to_user!(acdata, username, session_id)
 end
 
 
 function remove_sessionid_from_user!(username::AbstractString, session_id::AbstractString)
     acdata = config[:acdata]
-    acdata != nothing && remove_sessionid_from_user!(config[:acdata], username, session_id)
+    c1     = acdata != nothing
+    c2     = length(session_id) == config[:session][:id_length]
+    c1 && c2 && remove_sessionid_from_user!(config[:acdata], username, session_id)
 end
 
 

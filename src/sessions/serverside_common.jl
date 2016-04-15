@@ -30,9 +30,15 @@ read_sessionid(req::Request) = read_sessionid(req, config[:session][:cookiename]
 Returns true if:
     - session_id exists in the server-side data store, and
     - the session hasn't timed out
+
+NOTE: If the session_id is not valid,  it is deleted from the database.
 """
 function session_is_valid(session_id::AbstractString)
-    session_is_valid(config[:session][:datastore], session_id)
+    result = session_is_valid(config[:session][:datastore], session_id)
+    if result == false
+	session_delete!(session_id)    # Delete session from database
+    end
+    result
 end
 
 
@@ -51,7 +57,7 @@ end
 
 
 function update_lastreq!(cp::ConnectionPool, session_id::AbstractString)
-    con    = get_connection!(cp)
+    con = get_connection!(cp)
     update_lastreq!(con, session_id)
     release!(cp, con)
 end
@@ -77,13 +83,20 @@ end
 
 "Delete session from database and set the specified cookie to an invalid state."
 function session_delete!(res::Response, session_id::AbstractString)
-    session_delete!(config[:session][:datastore], res, session_id)
+    session_delete!(res)           # Remove session ID cookie
+    session_delete!(session_id)    # Delete session from database
 end
 
 
-function session_delete!(cp::ConnectionPool, session_id::AbstractString, res::Response, cookiename::AbstractString)
+"Delete session_id from the database."
+function session_delete!(session_id::AbstractString)
+    session_delete!(config[:session][:datastore], session_id)
+end
+
+
+function session_delete!(cp::ConnectionPool, session_id::AbstractString)
     con = get_connection!(cp)
-    session_delete!(con, session_id, res, cookiename)
+    session_delete!(con, session_id)
     release!(cp, con)
 end
 

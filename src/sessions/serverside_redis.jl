@@ -35,11 +35,12 @@ end
 
 
 "Delete session from database and set the specified cookie to an invalid state."
-function session_delete!(con::RedisConnection, session_id::AbstractString, res::Response, cookiename::AbstractString)
-    username = get(con, "session:$session_id:username")
-    remove_sessionid_from_user!(username, session_id)
-    delete_session_from_database!(con, session_id)
-    session_delete!(res, cookiename)
+function session_delete!(con::RedisConnection, session_id::AbstractString)
+    if session_id != ""
+	username = get(con, "session:$session_id:username")
+	remove_sessionid_from_user!(username, session_id)
+	delete_session_from_database!(con, session_id)
+    end
 end
 
 

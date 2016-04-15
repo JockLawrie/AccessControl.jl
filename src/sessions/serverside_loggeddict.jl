@@ -21,11 +21,12 @@ end
 
 
 "Delete session from database and set the specified cookie to an invalid state."
-function session_delete!(sessions::LoggedDict, res::Response, session_id::AbstractString)
-    username = get(sessions, session_id, "username")
-    delete!(sessions, session_id)
+function session_delete!(sessions::LoggedDict, session_id::AbstractString)
+    if haskey(sessions, session_id)
+	username = get(sessions, session_id, "username")
+	delete!(sessions, session_id)
+    end
     remove_sessionid_from_user!(username, session_id)
-    session_delete!(res)
 end
 
 
