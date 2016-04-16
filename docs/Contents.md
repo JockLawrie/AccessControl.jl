@@ -14,13 +14,15 @@
 
 ## Todo
 
+##### General
+1. Document existing security features.
+2. Test cases.
+
 ##### Sessions
 1. Implement support for server-side sessions with other databases.
-2. Make the login and pwdreset functionality AJAX requests.
-3. Rate limiting. Limit the number of requests that a user can make per minute. This is aimed at preventing denial-of-service attacks.
+2. Rate limiting. Limit the number of requests that a user can make per minute. This is aimed at preventing denial-of-service attacks.
     - rate_limit:       Max number of requests per minute for the given session. Defaults to 100.
     - lockout_duration: Duration (in seconds) of lockout after rate_limit has been reached. Defaults to 1800 (30 mins).
-4. Document existing security features.
 
 ##### Authentication
 1. login!: max_attempts, lockout
@@ -31,7 +33,7 @@
 1. Make get_role(username) more flexible...what if a user has multiple roles?
 
 ##### Password Hashing
-1. Implement an API for enabling app developers to specify password rules.
+1. Implement an API for enabling app developers to specify password rules. Ditto for username rules.
 
 ##### Secure cookies
 1. Ensure that cookie attributes are being used correctly

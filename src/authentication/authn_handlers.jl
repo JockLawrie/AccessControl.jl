@@ -61,11 +61,10 @@ function process_pwdreset!(req, res)
 	username = get_username(req)
         if login_credentials_are_valid(username, current_pwd, acdata) && new_pwd == new_pwd2    # Successful password reset: Redirect
 	    set_password!(username, new_pwd)
-	    loc = get_redirect_location(username, :pwdreset, :success_redirect)
-	    redirect!(res, loc)
+	    res.data = get_redirect_location(username, :pwdreset, :success_redirect)
         else                                                # Unsuccessful password reset: Return 400: Bad Request
-	    msg = config[:pwdreset][:fail_msg]
-	    res.data = msg
+	    res.status = 400    # Bad request
+	    res.data   = config[:pwdreset][:fail_msg]
         end
     else
         badrequest!(res)

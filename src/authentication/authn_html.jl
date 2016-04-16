@@ -61,6 +61,7 @@ end
 function pwdreset_form()
     "<h2>Password reset.</h2>
      <br>
+     <form onsubmit='pwdreset(); return false;' method='post'>
      <form action='/process_pwdreset' method='post'>
          Current password:<br>
          <input type='password' id='current_pwd' name='current_pwd'/>
@@ -72,5 +73,29 @@ function pwdreset_form()
 	 <input type='password' id='new_pwd2' name='new_pwd2'/>
 	 <br>
          <input type='submit' value='Reset Password'/>
-    </form>"
+     </form>
+     <script>
+         function pwdreset() {
+             var current_pwd = document.getElementById('current_pwd').value;
+             var new_pwd     = document.getElementById('new_pwd').value;
+             var new_pwd2    = document.getElementById('new_pwd2').value;
+             var reqdata     = 'current_pwd=' + current_pwd + '&new_pwd=' + new_pwd + '&new_pwd2=' + new_pwd2;
+             var xhr         = new XMLHttpRequest();
+             xhr.onreadystatechange = function() {
+	         if(xhr.readyState == 4) {
+		     if(xhr.status == 200) {
+		         window.location = xhr.responseText;
+                     }
+	             if(xhr.status == 400) { // Bad request
+		         alert(xhr.responseText);
+                     }
+	             document.getElementById('current_pwd').value = '';    // Clear the input
+	             document.getElementById('new_pwd').value     = '';
+	             document.getElementById('new_pwd2').value    = '';
+	         }
+	     }
+	     xhr.open('POST', '/process_pwdreset', true);
+	     xhr.send(reqdata);
+         }
+     </script>"
 end
