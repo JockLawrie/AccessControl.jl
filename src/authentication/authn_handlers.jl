@@ -22,11 +22,10 @@ function login!(req, res)
 	    end
 
 	    # Redirect
-	    loc = get_redirect_location(username, :login, :success_redirect)
-	    redirect!(res, loc)
+	    res.data = get_redirect_location(username, :login, :success_redirect)
 	else                                                          # Unsuccessful login: Return fail message
-	    msg = config[:login][:fail_msg]
-	    res.data = msg
+	    res.status = 400    # Bad request
+	    res.data   = config[:login][:fail_msg]
 	end
     else
 	badrequest!(res)

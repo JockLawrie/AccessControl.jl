@@ -66,31 +66,4 @@ acpaths["/logout"]           = logout!              # Redirect user according to
 acpaths["/reset_password"]   = reset_password!      # Display password reset form
 acpaths["/process_pwdreset"] = process_pwdreset!    # Handle credentials supplied by user as part of password reset
 
-
-#=
-    Functions that are determined by the app's call to AccessControl.configure()
-    Specifically, these functions depend on the type of the app's access control data store
-=#
-
-#=
-# User create/delete
-function create_user!  end
-function delete_user!  end
-
-# Add/remove session to/from user record in acdata
-function add_sessionid_to_user! end
-function remove_sessionid_from_user! end
-function session_is_valid end
-
-# Password management
-function set_password! end
-function get_salt_hashedpwd end
-
-# Role management
-function add_role! end
-function add_roles! end
-function remove_role! end
-function remove_roles! end
-=#
-
 end # module
