@@ -33,7 +33,9 @@ It is often argued that client-side cookies scale better than server-side cookie
 
 __NOTE__: In these docs we run all examples under HTTPS rather than HTTP. This security measure prevents attackers from reading our requests and responses directly off the wire.
 
-## The Basic API
+## API
+
+### Config
 Access control configuration is stored in `AccessControl.config`, which is a `Dict`. Both client-side and server-side sessions have the following default session configuration in common, which can be modified as desired:
 ```julia
 config[:session] = Dict(:datastore => :cookie,    # One of: :cookie::Symbol, ld::LoggedDict, cp::ConnectionPool
@@ -48,6 +50,13 @@ config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 10 * 60 * 1000,  
                                             :cookie_attr    => Dict("Max-Age" => "600", "Secure" => "", "HttpOnly" => ""))
 ```
 
+To change config settings, call `AccessControl.update_config!(x = y)`, where:
+- `x` is one of the following keywords: `acdata`, `session`, `securecookie`, `login`, `logout`, `pwdreset`.
+- `y` contains the corresponding _changes_.
+
+__Note:__ Only config elements supplied as arguments to `update_config!` are updated. Those that are not supplied remain unchanged. For example, suppose we wish to change the cookie name to "session_id". Then we needn't supply the entire `config[:session]` dict as an argument. Instead we can just call `AccessControl.update_config!(session = Dict(:cookiename => "session_id"))`.
+
+### Client-Side Sessions
 Client-side sessions are `Dict`s stored in a cookie. They have the following create, read, write and delete functions. Updating sessions occurs in the application code using standard Julia syntax for modifying `Dict`s.
 ```julia
 ### Client-side sessions
@@ -57,6 +66,7 @@ session_write!(res, session)           # Write the session to the "id" cookie
 session_delete!(res)                   # Set the response's "id" cookie to an invalid state
 ```
 
+### Server-Side Sessions
 Server-side sessions store a session ID in a cookie AND a session object on the database. The implementation of the session object depends on the database used. This package provides the following CRUD (create/read/update/delete) functions. Currently `LoggedDict`s and Redis are the only supported databases.
 ```julia
 ### Server-side sessions

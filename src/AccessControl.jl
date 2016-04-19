@@ -19,9 +19,8 @@ export
     has_role                                      # AuthZ utils
 
 ### Config - to be updated by the app's call to AccessControl.configure()
-config                  = Dict{Symbol, Any}()
-config[:admin_password] = nothing
-config[:acdata]         = nothing                        # No default data store for access control data
+config            = Dict{Symbol, Any}()
+config[:acdata]   = nothing                        # No default data store for access control data
 
 config[:session]  = Dict(:datastore => :cookie,    # One of: :cookie::Symbol, ld::LoggedDict, cp::ConnectionPool
                          :cookiename => "id",      # Store the session (client-side) or session ID (server-side) in the "id" cookie
