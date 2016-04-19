@@ -136,13 +136,13 @@ run(server, port = 8000, ssl = (cert, key))
 ```julia
 config[:login]    = Dict(:max_attempts => 5,           # Max number of allowed login attempts
                          :lockout_duration => 1800,    # Duration (sec) of lockout after max_attempts failed login attempts
-			 :success_redirect => "/",     # Redirect location on successful login. Can be a function of the user.
-			 :fail_msg => "Username and/or password incorrect.")    # Alert message on failed login attempt
+                         :success_redirect => "/",     # Redirect location on successful login. Can be a function of the user.
+                         :fail_msg => "Username and/or password incorrect.")    # Alert message on failed login attempt
 
-config[:logout]   = Dict(:redirect => "/")         # Redirect location on logout
+config[:logout]   = Dict(:redirect => "/")             # Redirect location on logout
 
 config[:pwdreset] = Dict(:max_attempts => 5,           # Max number of allowed attempts at password reset
                          :lockout_duration => 1800,    # Duration (sec) of lockout after max_attempts failed attempts
-			 :success_redirect => "/",     # Redirect location on successful password reset. Can be a function of the user.
-			 :fail_msg => "Password incorrect.")    # Alert message on failed password reset attempt
+                         :success_redirect => "/",     # Redirect location on successful password reset. Can be a function of the user.
+                         :fail_msg => "Password incorrect.")    # Alert message on failed password reset attempt
 ```
