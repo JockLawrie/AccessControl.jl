@@ -56,7 +56,9 @@ To change config settings, call `AccessControl.update_config!(x = y)`, where:
 
 __Note:__ Only config elements supplied as arguments to `update_config!` are updated. Those that are not supplied remain unchanged. For example, suppose we wish to change the cookie name to "session_id". Then we needn't supply the entire `config[:session]` dict as an argument. Instead we can just call:
 
-    `AccessControl.update_config!(session = Dict(:cookiename => "session_id"))`.
+```julia
+AccessControl.update_config!(session = Dict(:cookiename => "session_id"))
+```
 
 ### Client-Side Sessions
 Client-side sessions are `Dict`s stored in a cookie. They have the following create, read, write and delete functions. Updating sessions occurs in the application code using standard Julia syntax for modifying `Dict`s.
