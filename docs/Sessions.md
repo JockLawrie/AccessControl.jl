@@ -55,6 +55,7 @@ To change config settings, call `AccessControl.update_config!(x = y)`, where:
 - `y` contains the corresponding _changes_.
 
 __Note:__ Only config elements supplied as arguments to `update_config!` are updated. Those that are not supplied remain unchanged. For example, suppose we wish to change the cookie name to "session_id". Then we needn't supply the entire `config[:session]` dict as an argument. Instead we can just call:
+
     `AccessControl.update_config!(session = Dict(:cookiename => "session_id"))`.
 
 ### Client-Side Sessions
