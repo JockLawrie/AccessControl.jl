@@ -42,9 +42,10 @@ config[:session] = Dict(:datastore => :cookie,    # One of: :cookie::Symbol, ld:
                         :max_n_sessions => 1,     # Max number of simultaneous sessions for a given user
                         :timeout => 600)          # Max number of seconds between requests in the same session
 
-config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
-                                            :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
-                                            :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
+config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 10 * 60 * 1000,    # Duration of a session's validity in milliseconds
+                                            :key_length     => 32,                # Key length for AES 256-bit cipher in CBC mode
+                                            :block_size     => 16,                # IV  length for AES 256-bit cipher in CBC mode
+                                            :cookie_attr    => Dict("Max-Age" => "600", "Secure" => "", "HttpOnly" => ""))
 ```
 
 Client-side sessions are `Dict`s stored in a cookie. They have the following create, read, write and delete functions. Updating sessions occurs in the application code using standard Julia syntax for modifying `Dict`s.
