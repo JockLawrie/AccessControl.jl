@@ -1,5 +1,11 @@
 # AccessControl
 
+
+[![Build Status](https://travis-ci.org/JockLawrie/AccessControl.jl.svg?branch=master)](https://travis-ci.org/JockLawrie/AccessControl.jl)
+[![Coverage Status](http://codecov.io/github/JockLawrie/AccessControl.jl/coverage.svg?branch=master)](http://codecov.io/github/JockLawrie/AccessControl.jl?branch=master)
+
+
+
 ## WARNING: This package has not been scrutinized by a security professional. Therefore it is a proof-of-concept at this stage. Use at your own risk.
 
 ## Functionality
