@@ -19,17 +19,31 @@ export
     has_role                                      # AuthZ utils
 
 ### Config - to be updated by the app's call to AccessControl.configure()
-config                  = Dict{Symbol, Any}()
-config[:admin_password] = nothing
-config[:acdata]         = nothing                                   # No default data store for access control data
-config[:session]        = Dict(:datastore => :cookie,               # One of: :cookie::Symbol, ld::LoggedDict, cp::ConnectionPool
-                               :cookiename => "id", :id_length => 32, :max_n_sessions => 1, :timeout => 600)
-config[:login]          = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Username and/or password incorrect.")
-config[:logout]         = Dict(:redirect => "/")
-config[:pwdreset]       = Dict(:max_attempts => 5, :lockout_duration => 1800, :success_redirect => "/", :fail_msg => "Password incorrect.")
-config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 5 * 60 * 1000,    # Duration of a session's validity in milliseconds
-                                            :key_length     => 32,               # Key length for AES 256-bit cipher in CBC mode
-                                            :block_size     => 16)               # IV  length for AES 256-bit cipher in CBC mode
+config            = Dict{Symbol, Any}()
+config[:acdata]   = nothing                        # No default data store for access control data
+
+config[:session]  = Dict(:datastore => :cookie,    # One of: :cookie::Symbol, ld::LoggedDict, cp::ConnectionPool
+                         :cookiename => "id",      # Store the session (client-side) or session ID (server-side) in the "id" cookie
+                         :id_length => 32,         # Length of the session ID in bytes
+                         :max_n_sessions => 1,     # Max number of simultaneous sessions for a given user
+                         :timeout => 600)          # Max number of seconds between requests in the same session
+
+config[:login]    = Dict(:max_attempts => 5,           # Max number of allowed login attempts
+                         :lockout_duration => 1800,    # Duration (sec) of lockout after max_attempts failed login attempts
+			 :success_redirect => "/",     # Redirect location on successful login. Can be a function of the user.
+			 :fail_msg => "Username and/or password incorrect.")    # Alert message on failed login attempt
+
+config[:logout]   = Dict(:redirect => "/")         # Redirect location on logout
+
+config[:pwdreset] = Dict(:max_attempts => 5,           # Max number of allowed attempts at password reset
+                         :lockout_duration => 1800,    # Duration (sec) of lockout after max_attempts failed attempts
+			 :success_redirect => "/",     # Redirect location on successful password reset. Can be a function of the user.
+			 :fail_msg => "Password incorrect.")    # Alert message on failed password reset attempt
+
+config[:securecookie]   = Dict{Symbol, Any}(:cookie_max_age => 10 * 60 * 1000,    # Duration of a session's validity in milliseconds
+                                            :key_length     => 32,                # Key length for AES 256-bit cipher in CBC mode
+                                            :block_size     => 16,                # IV  length for AES 256-bit cipher in CBC mode
+                                            :cookie_attr    => Dict("Max-Age" => "600", "Secure" => "", "HttpOnly" => ""))
 
 ### Includes
 # Common
