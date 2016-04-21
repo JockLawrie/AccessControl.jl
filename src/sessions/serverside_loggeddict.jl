@@ -25,8 +25,8 @@ function session_delete!(sessions::LoggedDict, session_id::AbstractString)
     if haskey(sessions, session_id)
 	username = get(sessions, session_id, "username")
 	delete!(sessions, session_id)
+	remove_sessionid_from_user!(username, session_id)
     end
-    remove_sessionid_from_user!(username, session_id)
 end
 
 
