@@ -95,10 +95,9 @@ res = Requests.get("https://0.0.0.0:8000/logout", tls_conf = Requests.TLS_NOVERI
 @test res.status == 404    # notfound!
 
 # Logout while logged in 
-res     = Requests.get("https://0.0.0.0:8000/logout", tls_conf = Requests.TLS_NOVERIFY; cookies = [cookie])
-cookie2 = res.cookies["id"]
+res = Requests.get("https://0.0.0.0:8000/logout", tls_conf = Requests.TLS_NOVERIFY; cookies = [cookie])
 @test res.status == 200
-@test cookie2.attrs["Max-Age"] == "0"
+@test !haskey(res.cookies, "id")
 
 
 ################################################################################
@@ -115,7 +114,7 @@ res = Requests.get("https://0.0.0.0:8000/members/gold", tls_conf = Requests.TLS_
 # Log in with the old (invalid) credentials
 postdata = "username=Alice&password=pwd_alice"
 res      = Requests.post("https://0.0.0.0:8000/login", tls_conf = Requests.TLS_NOVERIFY; data = postdata)
-@test res.status == 404    # notfound!
+@test res.status == 400   # Bad request
 
 # Log in with the new (valid) credentials
 postdata = "username=Alice&password=yyy"
