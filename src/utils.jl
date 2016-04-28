@@ -8,6 +8,42 @@ function using_secure_cookies()
 end
 
 
+function using_clientside_sessions()
+    config[:session][:datastore] == :cookie
+end
+
+
+"Returns: nonce and newform, where newform is form with the nonce inserted as a hidden field."
+function add_nonce_to_form(form::AbstractString)    
+    nonce   = base64encode(csrng(config[:session][:id_length]))
+    replc   = "<input type='hidden' id='' name='nonce' value=$nonce></form>"
+    newform = replace(form, "</form>", replc)
+    nonce,  newform
+end
+
+
+"""
+Inserts a hidden field into the form that contains a nonce.
+Records the nonce in the server-side session object, form_id => nonce.
+"""
+function add_nonce_to_form(form_id::AbstractString, form::AbstractString, session_id::AbstractString)
+    nonce, newform = add_nonce_to_form(form)
+    session_set!(session_id, "forms", form_id, nonce)    # Store nonce in session
+    newform
+end
+
+
+"""
+Inserts a hidden field into the form that contains a nonce.
+Records the nonce in the client-side session object, form_id => nonce.
+"""
+function add_nonce_to_form(form_id::AbstractString, form::AbstractString, session::Dict)
+    nonce, newform = add_nonce_to_form(form)
+    session["forms"][form_id] = nonce
+    newform
+end
+
+
 "Cryptographically secure RNG"
 function csrng(numbytes::Integer)
     entropy = MbedTLS.Entropy()

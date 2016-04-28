@@ -17,6 +17,7 @@
 ##### General
 1. Document existing security features.
 2. Test cases.
+3. Pen tests with automated scanners.
 
 ##### Sessions
 1. Implement support for server-side sessions with other databases.
@@ -27,7 +28,6 @@
 ##### Authentication
 1. login!: max_attempts, lockout
 2. pwdreset!: max_attempts, lockout (use login settings)
-3. CSRF protection for password reset form.
 
 ##### Authorization
 1. Make get_role(username) more flexible...what if a user has multiple roles?

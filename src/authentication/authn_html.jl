@@ -8,7 +8,6 @@ Returns: default login form.
 Ensures HTTP method is POST.
 """
 function login_form()
-    #"<form action='/login' method='post'>
     "<form onsubmit='login(); return false;' method='post'>
 	 Username:<br>
 	 <input type='text' id='username' name='username'/>
@@ -22,7 +21,12 @@ function login_form()
          function login() {
              var username = document.getElementById('username').value;
              var password = document.getElementById('password').value;
-             var reqdata  = 'username=' + username + '&password=' + password;
+             //var reqdata  = 'username=' + username + '&password=' + password;
+
+	     var reqdata  = JSON.stringify({'username': username, 'password': password});
+
+
+
              var xhr      = new XMLHttpRequest();
              xhr.onreadystatechange = function() {
 	         if(xhr.readyState == 4) {
@@ -58,10 +62,24 @@ function logout_pwdreset_links()
 end
 
 
-function pwdreset_form()
+"Returns: default pwdreset form for server-side session."
+function pwdreset_form(session_id::AbstractString)
+    form = pwdreset_form_no_nonce()
+    add_nonce_to_form("pwdreset", form, session_id)
+end
+
+
+"Returns: default pwdreset form for client-side session."
+function pwdreset_form(session::Dict)
+    form = pwdreset_form_no_nonce()
+    add_nonce_to_form("pwdreset", form, session)
+end
+
+
+function pwdreset_form_no_nonce()
     "<h2>Password reset.</h2>
      <br>
-     <form onsubmit='pwdreset(); return false;' method='post'>
+     <form id='pwdreset' onsubmit='pwdreset(); return false;' method='post'>
          Current password:<br>
          <input type='password' id='current_pwd' name='current_pwd'/>
 	 <br>
@@ -75,10 +93,12 @@ function pwdreset_form()
      </form>
      <script>
          function pwdreset() {
+	     var nonce       = document.getElementById('pwdreset').elements['nonce'].value;
              var current_pwd = document.getElementById('current_pwd').value;
              var new_pwd     = document.getElementById('new_pwd').value;
              var new_pwd2    = document.getElementById('new_pwd2').value;
-             var reqdata     = 'current_pwd=' + current_pwd + '&new_pwd=' + new_pwd + '&new_pwd2=' + new_pwd2;
+             var reqdata     = {'form_id': 'pwdreset', 'nonce': nonce, 'current_pwd': current_pwd, 'new_pwd': new_pwd, 'new_pwd2': new_pwd2};
+	     reqdata         = JSON.stringify(reqdata);
              var xhr         = new XMLHttpRequest();
              xhr.onreadystatechange = function() {
 	         if(xhr.readyState == 4) {
@@ -98,3 +118,6 @@ function pwdreset_form()
          }
      </script>"
 end
+
+
+# EOF

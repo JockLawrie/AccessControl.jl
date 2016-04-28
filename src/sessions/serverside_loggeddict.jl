@@ -5,6 +5,7 @@
 =#
 using LoggedDicts
 
+
 """
 Init session_id => session on the database and set the specified cookie to session_id.
 Return: session_id
@@ -53,12 +54,16 @@ end
 
 
 function session_get(sessions::LoggedDict, session_id, keys...)
-    get(sessions, session_id, keys...)
+    result = nothing
+    if haskey(sessions, session_id, keys...)
+	result = get(sessions, session_id, keys...)
+    end
+    result
 end
 
 
-function session_set!(sessions::LoggedDict, session_id, keys...)
-    set!(sessions, session_id, keys...)
+function session_set!(sessions::LoggedDict, session_id, keys_value...)
+    set!(sessions, session_id, keys_value...)
 end
 
 

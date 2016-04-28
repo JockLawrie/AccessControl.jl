@@ -19,21 +19,21 @@ end
 "Returns: username and password extracted from login POST request."
 function extract_username_password(req)
    qry = bytestring(req.data)        # query = "username=xxx&password=yyy"
-   dct = parsequerystring(qry)       # Dict("username" => xxx, "password" => yyy)
+   dct = JSON.parse(qry)             # Dict("username" => xxx, "password" => yyy)
    dct["username"], dct["password"]
 end
 
 
 """
-Returns: username, current password and new password extracted from user_reset_password POST request.
+Returns: username, current password and new password extracted from process_pwdreset POST request.
 
 Notes:
 1. New password is supplied twice, via new_pwd and new_pwd2.
 """
 function extract_currpwd_newpwd_newpwd2(req)
     qry = bytestring(req.data)
-    dct = parsequerystring(qry)    # Dict("current_pwd" => yyy, "new_pwd" => zzz, "new_pwd2" => www)
-    dct["current_pwd"], dct["new_pwd"], dct["new_pwd2"]
+    dct = JSON.parse(qry)    # Dict("form_id" => "pwdreset", "nonce" => nonce, "current_pwd" => yyy, "new_pwd" => zzz, "new_pwd2" => www)
+    dct["form_id"], dct["nonce"], dct["current_pwd"], dct["new_pwd"], dct["new_pwd2"]
 end
 
 

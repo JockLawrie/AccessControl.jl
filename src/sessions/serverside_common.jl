@@ -108,7 +108,7 @@ end
 
 function session_get(cp::ConnectionPool, session_id::AbstractString, keys...)
     con = get_connection!(cp)
-    v = session_get(con, session_id, keys...)
+    v   = session_get(con, session_id, keys...)
     release!(cp, con)
     v
 end
